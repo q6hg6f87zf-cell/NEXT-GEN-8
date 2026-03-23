@@ -2745,19 +2745,31 @@ function addResident() {
   const name = document.getElementById('res-name').value;
   const role = document.getElementById('res-role').value;
   if (!name) return;
-  STATE.baseResidents.push({ name, role, note: '' });
+  // Shady characters start with dubious loyalty (5/10)
+  STATE.baseResidents.push({ name, role, note: '', loyalty: 5 }); 
   STATE.showAddResident = false;
   addLog({ type: 'note', who: 'Moon Squad', what: `${name} (${role}) has joined the HQ.` });
-  saveAll();
-  render();
+  saveAll(); render();
 }
 
 function rmResident(index) {
   if (!confirm("Remove this resident?")) return;
   STATE.baseResidents.splice(index, 1);
-  saveAll();
-  render();
+  saveAll(); render();
 }
+
+function adjLoyalty(index, delta) {
+  const r = STATE.baseResidents[index];
+  if(!r) return;
+  if(r.loyalty === undefined) r.loyalty = 5;
+  r.loyalty = Math.max(1, Math.min(10, r.loyalty + delta));
+  
+  if(r.loyalty <= 3) {
+    addLog({type:'note', who:r.name, what:`${r.name}'s loyalty is critically low (${r.loyalty}/10). Risk of betrayal!`});
+  }
+  saveAll(); render();
+}
+
 
 function toggleVillain(id) {
   if (!STATE.villainsLive) STATE.villainsLive = [];
