@@ -755,6 +755,13 @@ library:{name:"Sunken Library",icon:"📚",encounters:[
 {name:"Flooded Vault",difficulty:7,type:"explore",enemy:"Water depth",reward:"Scholar’s case contents"}
 ]}
 };
+const WANTED_BOUNTIES = [
+  { id: "b1", name: "The Ashen Deserter", type: "Rogue Warrior", reward: "5,000 Coins", location: "Dark Enchanted Forest", dc: 14 },
+  { id: "b2", name: "Void-Touched Smuggler", type: "Corrupted Merchant", reward: "Rare Weapon", location: "Underground Caverns", dc: 15 },
+  { id: "b3", name: "The Mad Alchemist", type: "Rogue Healer", reward: "Legendary Enchantment", location: "Crumbling Kingdom", dc: 16 },
+  { id: "b4", name: "Cultist of the Sink", type: "Zealot", reward: "8,000 Coins", location: "Sunken Library", dc: 15 },
+  { id: "b5", name: "Wandering Null-Spawn", type: "Entity", reward: "Mythic Artifact", location: "Hollow's Edge", dc: 18 }
+];
 
 const RAID_ACTIONS = [
 {coins:100,label:"Scout Ahead",desc:"Reveals what is in the next encounter before committing."},
@@ -1855,82 +1862,21 @@ function renderVillains() {
   const buildCard = (v, isActive) => {
     const currentPhaseIdx = (STATE.villainPhases && STATE.villainPhases[v.id] !== undefined) ? STATE.villainPhases[v.id] : 0;
     const phase = v.phases[currentPhaseIdx];
-    
-    // Logic for Villain Stats (Using Phase defaults or GM Overrides)
-    const baseDC = 10 + (v.phases.length - currentPhaseIdx); // Simple auto-math for DC
-    const baseLeth = currentPhaseIdx + 2; // Simple auto-math for Lethality
+    const baseDC = 10 + (v.phases.length - currentPhaseIdx); 
+    const baseLeth = currentPhaseIdx + 2; 
     
     const dc = (STATE.villainOverrides && STATE.villainOverrides[v.id]?.dc) || baseDC;
     const leth = (STATE.villainOverrides && STATE.villainOverrides[v.id]?.leth) || baseLeth;
     const isDcOver = STATE.villainOverrides && STATE.villainOverrides[v.id]?.dc;
     const isLethOver = STATE.villainOverrides && STATE.villainOverrides[v.id]?.leth;
 
+    // ✦ Empire Stats
+    const emp = (STATE.villainEmpires && STATE.villainEmpires[v.id]) || {territory: 100, lieutenants: 3};
+
     return `
     <div class="card" style="border-color:${v.color}${isActive ? '90' : '30'}; background:rgba(20,10,30,${isActive ? '0.8' : '0.4'}); margin-bottom:12px">
-      <div style="display:flex; justify-content:space-between; align-items:center">
-        <div style="display:flex; gap:10px; align-items:center">
-          <span style="font-size:1.5rem; ${!isActive ? 'filter:grayscale(1); opacity:0.6;' : ''}">${v.icon}</span>
-          <div>
-            <div style="font-weight:bold; color:${isActive ? '#fff' : 'var(--dim)'}">${esc(v.name)}</div>
-            <div style="font-size:0.6rem; color:${v.color}">${esc(v.title)}</div>
-          </div>
-        </div>
-        <div style="display:flex; gap:5px">
-          ${isActive ? `<button class="btn btn-sm btn-red" onclick="toggleVillain('${v.id}')">Retire</button>` : `<button class="btn btn-sm btn-green" onclick="toggleVillain('${v.id}')">Activate</button>`}
-        </div>
-      </div>
+      <div style="display:
 
-      ${isActive ? `
-      <div class="roll-box" style="margin-top:12px; border-color:${phase.color}60; background:${phase.color}10">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-          <div style="font-size:0.65rem; color:${phase.color}; font-weight:bold; text-transform:uppercase">Active: ${phase.name}</div>
-          <div style="font-size:0.65rem; color:var(--dim)">${phase.hp}</div>
-        </div>
-        
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px">
-          <div style="background:rgba(0,0,0,0.3); padding:6px; border-radius:6px; border:1px solid ${isDcOver?'var(--gold)':'transparent'}">
-            <div class="label" style="margin-bottom:2px">Threat DC</div>
-            <input type="number" class="input" style="height:24px; font-weight:bold; color:${isDcOver?'var(--gold)':'#fff'}" value="${dc}" onchange="overrideVillain('${v.id}', 'dc', this.value)">
-          </div>
-          <div style="background:rgba(0,0,0,0.3); padding:6px; border-radius:6px; border:1px solid ${isLethOver?'var(--gold)':'transparent'}">
-            <div class="label" style="margin-bottom:2px">Lethality</div>
-            <input type="number" class="input" style="height:24px; font-weight:bold; color:${isLethOver?'var(--gold)':'#fff'}" value="${leth}" onchange="overrideVillain('${v.id}', 'leth', this.value)">
-          </div>
-        </div>
-
-        <div class="phase-bar" style="margin-bottom:10px">
-          ${v.phases.map((p, i) => `
-            <div class="phase-pip" style="background:${i <= currentPhaseIdx ? p.color : 'rgba(255,255,255,0.1)'}; cursor:pointer" onclick="updateVillainPhase('${v.id}', ${i})"></div>
-          `).join('')}
-        </div>
-      </div>
-      ` : ''}
-
-      <div class="lore-tab-bar" style="margin-top:12px">
-        ${['lore', 'combat', 'phases', 'loot'].map(sec => `
-          <div class="lore-tab ${STATE.villainTab === v.id && STATE.villainSec === sec ? 'active' : ''}" 
-               onclick="STATE.villainTab='${v.id}'; STATE.villainSec='${sec}'; render()">
-            ${sec.charAt(0).toUpperCase() + sec.slice(1)}
-          </div>
-        `).join('')}
-      </div>
-      <div style="margin-top:10px; font-size:0.7rem; min-height:80px; color:var(--text); line-height:1.4">
-        ${renderVillainSubSection(v)}
-      </div>
-    </div>
-  `;};
-
-  return `
-    <div class="card-glow">
-      <div class="section-title" style="color:var(--red)">🎭 ACTIVE BOSSES</div>
-      ${activeVillains.length === 0 ? '<div class="empty-state">No villains are currently active.</div>' : activeVillains.map(v => buildCard(v, true)).join('')}
-    </div>
-    <div class="card">
-      <div class="section-title">Bestiary (Inactive)</div>
-      ${inactiveVillains.map(v => buildCard(v, false)).join('')}
-    </div>
-  `;
-}
 
 function renderVillainSubSection(v) {
   const sec = (STATE.villainTab === v.id) ? STATE.villainSec : 'lore';
@@ -2301,6 +2247,28 @@ function renderRaids() {
       </div>
       <button class="btn btn-purple btn-full" onclick="startRaid()">⚔️ DEPLOY RAID SQUAD</button>
     </div>
+    
+    <div class="card" style="border-color:var(--red)40">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+        <div class="section-title" style="margin-bottom:0; color:var(--red)">🎯 WANTED BOARD</div>
+        <button class="btn btn-sm btn-purple" onclick="rollBounty()">🎲 Pull Bounty</button>
+      </div>
+      ${!STATE.activeBounty ? '<div class="empty-state">No active bounties. Roll to check the board.</div>' : `
+        <div style="background:rgba(20,10,10,0.8); border-left:4px solid var(--red); padding:10px; border-radius:6px">
+          <div style="display:flex; justify-content:space-between">
+            <div style="font-weight:bold; font-size:1.1rem; color:#fff">${STATE.activeBounty.name}</div>
+            <button class="btn btn-sm btn-green" onclick="clearBounty()">✓ Claim</button>
+          </div>
+          <div style="font-size:0.65rem; color:var(--dim); margin-bottom:8px">${STATE.activeBounty.type}</div>
+          <div style="display:flex; gap:10px; font-size:0.7rem">
+            <div style="color:var(--gold)"><b>Reward:</b> ${STATE.activeBounty.reward}</div>
+            <div style="color:var(--blue)"><b>DC:</b> ${STATE.activeBounty.dc}</div>
+          </div>
+          <div style="font-size:0.7rem; color:#ccc; margin-top:6px"><b>Last Seen:</b> ${STATE.activeBounty.location}</div>
+        </div>
+      `}
+    </div>
+
     <div class="card">
       <div class="section-title">Raid History</div>
       ${STATE.raidHistory.length === 0 ? '<div style="font-size:0.65rem; color:var(--dim)">No raids recorded this arc.</div>' : 
@@ -2312,6 +2280,7 @@ function renderRaids() {
     </div>
   `;
 }
+
 
 function renderArsenal() {
   const classes = ['Warrior', 'Wizard', 'Rogue', 'Healer', 'Merchant', 'Bard'];
@@ -3140,6 +3109,35 @@ function rollSmartLoot(locId, playerId) {
   
   if(STATE.sessionActive) {
     addLog({type:'item', who:p ? p.charname : 'Party', what:`Unboxed ${rarity} loot at ${loc.name}${isCursed?' [VOID-TOUCHED]':''}`});
+  }
+  saveAll(); render();
+}
+// ✦ Phase 5: Empires & Bounties
+function rollBounty() {
+  const b = WANTED_BOUNTIES[Math.floor(Math.random() * WANTED_BOUNTIES.length)];
+  STATE.activeBounty = { ...b, time: new Date().toLocaleTimeString() };
+  addLog({type:'note', who:'Bounty Board', what:`New Target Posted: ${b.name} at ${b.location}.`});
+  saveAll(); render();
+}
+
+function clearBounty() {
+  if(STATE.activeBounty) {
+    addLog({type:'action', who:'Moon Squad', what:`Bounty Claimed: ${STATE.activeBounty.name}.`});
+    STATE.activeBounty = null;
+    saveAll(); render();
+  }
+}
+
+function adjEmpire(villainId, type, delta) {
+  if(!STATE.villainEmpires) STATE.villainEmpires = {};
+  if(!STATE.villainEmpires[villainId]) STATE.villainEmpires[villainId] = { territory: 100, lieutenants: 3 };
+  
+  if(type === 'territory') {
+    STATE.villainEmpires[villainId].territory = Math.max(0, Math.min(100, STATE.villainEmpires[villainId].territory + delta));
+    addLog({type:'action', who:'Moon Squad', what:`Villain territory shifted by ${delta}%. Now ${STATE.villainEmpires[villainId].territory}%.`});
+  } else if (type === 'lieutenants') {
+    STATE.villainEmpires[villainId].lieutenants = Math.max(0, STATE.villainEmpires[villainId].lieutenants + delta);
+    addLog({type:'action', who:'Moon Squad', what:`Villain lieutenants changed to ${STATE.villainEmpires[villainId].lieutenants}.`});
   }
   saveAll(); render();
 }
