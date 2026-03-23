@@ -1875,8 +1875,86 @@ function renderVillains() {
 
     return `
     <div class="card" style="border-color:${v.color}${isActive ? '90' : '30'}; background:rgba(20,10,30,${isActive ? '0.8' : '0.4'}); margin-bottom:12px">
-      <div style="display:
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <div style="display:flex; gap:10px; align-items:center">
+          <span style="font-size:1.5rem; ${!isActive ? 'filter:grayscale(1); opacity:0.6;' : ''}">${v.icon}</span>
+          <div>
+            <div style="font-weight:bold; color:${isActive ? '#fff' : 'var(--dim)'}">${esc(v.name)}</div>
+            <div style="font-size:0.6rem; color:${v.color}">${esc(v.title)}</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:5px">
+          ${isActive ? `<button class="btn btn-sm btn-red" onclick="toggleVillain('${v.id}')">Retire</button>` : `<button class="btn btn-sm btn-green" onclick="toggleVillain('${v.id}')">Activate</button>`}
+        </div>
+      </div>
 
+      ${isActive ? `
+      <div class="roll-box" style="margin-top:12px; border-color:${phase.color}60; background:${phase.color}10">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+          <div style="font-size:0.65rem; color:${phase.color}; font-weight:bold; text-transform:uppercase">Active: ${phase.name}</div>
+          <div style="font-size:0.65rem; color:var(--dim)">${phase.hp}</div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px">
+          <div style="background:rgba(0,0,0,0.3); padding:6px; border-radius:6px; border:1px solid ${isDcOver?'var(--gold)':'transparent'}">
+            <div class="label" style="margin-bottom:2px">Threat DC</div>
+            <input type="number" class="input" style="height:24px; font-weight:bold; color:${isDcOver?'var(--gold)':'#fff'}" value="${dc}" onchange="overrideVillain('${v.id}', 'dc', this.value)">
+          </div>
+          <div style="background:rgba(0,0,0,0.3); padding:6px; border-radius:6px; border:1px solid ${isLethOver?'var(--gold)':'transparent'}">
+            <div class="label" style="margin-bottom:2px">Lethality</div>
+            <input type="number" class="input" style="height:24px; font-weight:bold; color:${isLethOver?'var(--gold)':'#fff'}" value="${leth}" onchange="overrideVillain('${v.id}', 'leth', this.value)">
+          </div>
+        </div>
+
+        <div class="phase-bar" style="margin-bottom:10px">
+          ${v.phases.map((p, i) => `
+            <div class="phase-pip" style="background:${i <= currentPhaseIdx ? p.color : 'rgba(255,255,255,0.1)'}; cursor:pointer" onclick="updateVillainPhase('${v.id}', ${i})"></div>
+          `).join('')}
+        </div>
+        
+        <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:8px; margin-top:8px">
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.65rem; margin-bottom:4px">
+            <span style="color:var(--dim)">Territory Control: <b style="color:${emp.territory > 50 ? 'var(--red)' : 'var(--gold)'}">${emp.territory}%</b></span>
+            <div style="display:flex; gap:4px">
+              <button class="btn btn-sm" style="padding:2px 6px; border-color:var(--green); color:var(--green)" onclick="adjEmpire('${v.id}', 'territory', -10)">-10%</button>
+              <button class="btn btn-sm" style="padding:2px 6px; border-color:var(--red); color:var(--red)" onclick="adjEmpire('${v.id}', 'territory', 10)">+10%</button>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.65rem">
+            <span style="color:var(--dim)">Active Lieutenants: <b style="color:${emp.lieutenants > 0 ? 'var(--red)' : 'var(--dim)'}">${emp.lieutenants}</b></span>
+            <div style="display:flex; gap:4px">
+              <button class="btn btn-sm" style="padding:2px 6px; border-color:var(--green); color:var(--green)" onclick="adjEmpire('${v.id}', 'lieutenants', -1)">Killed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      ` : ''}
+
+      <div class="lore-tab-bar" style="margin-top:12px">
+        ${['lore', 'combat', 'phases', 'loot'].map(sec => `
+          <div class="lore-tab ${STATE.villainTab === v.id && STATE.villainSec === sec ? 'active' : ''}" 
+               onclick="STATE.villainTab='${v.id}'; STATE.villainSec='${sec}'; render()">
+            ${sec.charAt(0).toUpperCase() + sec.slice(1)}
+          </div>
+        `).join('')}
+      </div>
+      <div style="margin-top:10px; font-size:0.7rem; min-height:80px; color:var(--text); line-height:1.4">
+        ${renderVillainSubSection(v)}
+      </div>
+    </div>
+  `;};
+
+  return `
+    <div class="card-glow">
+      <div class="section-title" style="color:var(--red)">🎭 ACTIVE BOSSES</div>
+      ${activeVillains.length === 0 ? '<div class="empty-state">No villains are currently active.</div>' : activeVillains.map(v => buildCard(v, true)).join('')}
+    </div>
+    <div class="card">
+      <div class="section-title">Bestiary (Inactive)</div>
+      ${inactiveVillains.map(v => buildCard(v, false)).join('')}
+    </div>
+  `;
+}
 
 function renderVillainSubSection(v) {
   const sec = (STATE.villainTab === v.id) ? STATE.villainSec : 'lore';
@@ -1906,6 +1984,7 @@ function renderVillainSubSection(v) {
     default: return 'Select a section above.';
   }
 }
+
 
 
 function renderDice(){
