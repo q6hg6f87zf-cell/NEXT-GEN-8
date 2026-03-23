@@ -1810,21 +1810,40 @@ function renderNPCs() {
         </div>
       ` : ''}
       ${STATE.baseResidents.length === 0 ? '<div class="empty-state">No residents currently at HQ.</div>' : 
-        STATE.baseResidents.map((r, i) => `
-          <div class="room-card card" style="margin-bottom:8px; padding:10px">
-            <div style="display:flex; justify-content:space-between; align-items:center">
+        STATE.baseResidents.map((r, i) => {
+          const roleData = RESIDENT_ROLES[r.role] || {icon:'👤', label:'Unknown', color:'#bbb', bonus:''};
+          const isShady = r.role === 'smuggler' || r.role === 'informant';
+          const loyalty = r.loyalty || 5;
+          const loyaltyColor = loyalty >= 7 ? 'var(--green)' : loyalty <= 3 ? 'var(--red)' : 'var(--gold)';
+          
+          return `
+          <div class="room-card card" style="display:block; margin-bottom:8px; padding:10px; border-color:${isShady ? loyaltyColor+'50' : 'var(--border)'}">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start">
               <div>
-                <div style="font-weight:bold; font-size:0.85rem; color:${RESIDENT_ROLES[r.role].color}">${RESIDENT_ROLES[r.role].icon} ${esc(r.name)}</div>
-                <div style="font-size:0.65rem; color:var(--dim)">Role: ${RESIDENT_ROLES[r.role].label}</div>
-                <div style="font-size:0.6rem; color:var(--purple-light); margin-top:2px">✦ ${RESIDENT_ROLES[r.role].bonus}</div>
+                <div style="font-weight:bold; font-size:0.85rem; color:${roleData.color}">${roleData.icon} ${esc(r.name)}</div>
+                <div style="font-size:0.65rem; color:var(--dim)">Role: ${roleData.label}</div>
+                <div style="font-size:0.6rem; color:var(--purple-light); margin-top:2px">✦ ${roleData.bonus}</div>
               </div>
               <button class="btn btn-sm btn-red" onclick="rmResident(${i})">✕</button>
             </div>
+            ${isShady ? `
+              <div style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.05)">
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.65rem">
+                  <span style="color:var(--dim)">Loyalty: <b style="color:${loyaltyColor}">${loyalty}/10</b></span>
+                  <div style="display:flex; gap:4px">
+                    <button class="btn btn-sm" style="padding:2px 6px; border-color:var(--red); color:var(--red)" onclick="adjLoyalty(${i}, -1)">-</button>
+                    <button class="btn btn-sm" style="padding:2px 6px; border-color:var(--green); color:var(--green)" onclick="adjLoyalty(${i}, 1)">+</button>
+                  </div>
+                </div>
+                ${loyalty <= 3 ? `<div style="font-size:0.55rem; color:var(--red); margin-top:4px; font-weight:bold">⚠️ WARNING: Flight or betrayal imminent. Pay them.</div>` : ''}
+              </div>
+            ` : ''}
           </div>
-        `).join('')}
+        `}).join('')}
     </div>
   `;
 }
+
 
 function renderVillains() {
   const custVil = STATE.customVillains || [];
