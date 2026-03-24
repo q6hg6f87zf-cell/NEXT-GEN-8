@@ -956,15 +956,56 @@ const LEDGER_POOLS = {
 };
 
 const RESIDENT_ROLES = {
-  guard:{label:"Guard",icon:"🛡",bonus:"Counts toward barracks defense.",color:"#ef5350"},
-  healer:{label:"Healer",icon:"💚",bonus:"Infirmary heals +2 HP/session.",color:"#66bb6a"},
-  smith:{label:"Smith",icon:"🔨",bonus:"Forge repair costs -20%.",color:"#ffd54f"},
-  scholar:{label:"Scholar",icon:"📜",bonus:"Vault items auto-identified.",color:"#4fc3f7"},
-  merchant:{label:"Merchant",icon:"💰",bonus:"Base income: 50 coins/session.",color:"#ff9800"},
-  bard:{label:"Bard",icon:"🎵",bonus:"All players +1 first roll after resting.",color:"#ce93d8"},
-  smuggler:{label:"Smuggler",icon:"📦",bonus:"Brings rare gear. Low loyalty = Vault theft.",color:"#9c27b0"},
-  informant:{label:"Informant",icon:"👁️",bonus:"Reveals Villain DC/phases. Low loyalty = Ambush.",color:"#00bcd4"}
+  guard: {
+    label: "Guard", icon: "🛡️", color: "#ef5350",
+    bonus: "Base Defense +1.",
+    specialty: "Regional Recon: +2 Breach rolls in their home region.",
+    boon: "Level 10: Grants the 'Shield Brother' passive (+1 DEF to squad)."
+  },
+  healer: {
+    label: "Healer", icon: "💚", color: "#66bb6a",
+    bonus: "Infirmary heals +2 HP.",
+    specialty: "Purification: Can identify Void Infections for free.",
+    boon: "Level 10: Grants 1x 'Miracle Draught' (Full Heal) per arc."
+  },
+  smith: {
+    label: "Smith", icon: "🔨", color: "#ffd54f",
+    bonus: "Forge repairs -20% cost.",
+    specialty: "Hollow-Folding: Can use 1 less Ore for reforging.",
+    boon: "Level 10: Adds permanent +1 ATK to one item (Masterwork)."
+  },
+  scholar: {
+    label: "Scholar", icon: "📜", color: "#4fc3f7",
+    bonus: "Vault items auto-identified.",
+    specialty: "Lore-Seeking: Reveals 1 Boss weakness per arc.",
+    boon: "Level 10: Grants 'Aether Sight' (See hidden map paths)."
+  },
+  merchant: {
+    label: "Merchant", icon: "💰", color: "#ff9800",
+    bonus: "Base Income: 100c / session.",
+    specialty: "Trade Routes: Halves travel time between regions.",
+    boon: "Level 10: Unlocks 'The Secret Stock' (Rare items at 50% cost)."
+  },
+  bard: {
+    label: "Bard", icon: "🎵", color: "#ce93d8",
+    bonus: "Players +1 first roll after rest.",
+    specialty: "Morale Boost: Prevents 'Fear' status in the next raid.",
+    boon: "Level 10: Grants 'Golden Encore' (One free re-roll for the squad)."
+  },
+  smuggler: {
+    label: "Smuggler", icon: "📦", color: "#9c27b0",
+    bonus: "Brings 1 Rare item per session.",
+    specialty: "Black Market: Can sell 'Cursed' items for full value.",
+    boon: "Level 10: Leads the squad to a 'Ghost Cache' (Legendary Loot)."
+  },
+  informant: {
+    label: "Informant", icon: "👁️", color: "#00bcd4",
+    bonus: "Reveals Villain Phase HP.",
+    specialty: "Infiltration: Lowers Boss DC by -2 for one session.",
+    boon: "Level 10: Reveals the exact location of Voss (Mythic Merchant)."
+  }
 };
+
 const WORLD_NPCS = {
   "Voss, the Ash-Peddler": {
     name: "Voss", title: "The Ash-Peddler", icon: "🌑", region: "The Hollow's Edge", danger: 5,
