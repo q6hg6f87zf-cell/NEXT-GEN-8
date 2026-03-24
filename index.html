@@ -965,6 +965,64 @@ const RESIDENT_ROLES = {
   smuggler:{label:"Smuggler",icon:"📦",bonus:"Brings rare gear. Low loyalty = Vault theft.",color:"#9c27b0"},
   informant:{label:"Informant",icon:"👁️",bonus:"Reveals Villain DC/phases. Low loyalty = Ambush.",color:"#00bcd4"}
 };
+const WORLD_NPCS = {
+  "Voss, the Ash-Peddler": {
+    name: "Voss", title: "The Ash-Peddler", icon: "🌑", region: "The Hollow's Edge", danger: 5,
+    role: "Mythic Merchant", color: "#ce93d8",
+    quote: "The void demands equivalent exchange. Coins, blood, and memory.",
+    lore: "A Dust-Walker who has been out on the Edge so long he barely speaks in full sentences. He sits cross-legged in the ash, completely unbothered by the static that shreds reality around him.",
+    sensory: "Smells of ozone and burnt hair. His eyes glow a blinding violet. The sound of reality cracking faintly echoes when he breathes.",
+    spawn: "Requires a Tracking 16+ check to locate his camp in the ash storm. Failure attracts a Wandering Null-Spawn instead.",
+    interaction: "Does not bargain. The price is the price. Refuses to speak to anyone carrying a cursed item.",
+    inventory: [
+      { item: "Pure Void-Essence (Full Heal, applies minor curse)", cost: "2,000c", chance: "100%" },
+      { item: "Random Rare Weapon", cost: "5,000c", chance: "100%" },
+      { item: "Shard of the First Collapse (Adaptive Mythic)", cost: "25k + 1 Legendary + 1 Max HP", chance: "Limit 1 per Arc" }
+    ]
+  },
+  "Quartermaster Rudge": {
+    name: "Rudge", title: "Quartermaster", icon: "🏰", region: "Crumbling Kingdom", danger: 2,
+    role: "Standard Merchant", color: "#66bb6a",
+    quote: "Show your Kingdom identification, or pay the outlander tax.",
+    lore: "A Garrison-Born operating out of a half-collapsed toll booth. He still follows Kingdom protocol strictly, even though the empire has been dead for centuries.",
+    sensory: "Smells of polished iron, old leather, and stale ration biscuits. He is constantly, rhythmically sharpening a blade.",
+    spawn: "Always present at the Kingdom Gates. Very safe to visit.",
+    interaction: "Grants a 10% discount to Garrison-Born players. Dislikes Dust-Walkers.",
+    inventory: [
+      { item: "Standard Rations & Basic Whetstones", cost: "150c", chance: "100%" },
+      { item: "Common/Uncommon Garrison Gear", cost: "500c - 1,500c", chance: "100%" },
+      { item: "Random Rare Weapon found in rubble", cost: "4,000c", chance: "10% (Roll 19-20)" }
+    ]
+  },
+  "Nylah the Dredge": {
+    name: "Nylah", title: "The Dredge", icon: "📚", region: "Sunken Library", danger: 2,
+    role: "Arcane Merchant", color: "#4fc3f7",
+    quote: "The water keeps the best secrets. I just fetch them.",
+    lore: "A Sunken who uses her amphibious traits to dive into the flooded lower levels and bring up sealed lockboxes. She lays her wet, dripping inventory out on a cracked marble table.",
+    sensory: "Everything she wears is soaked. Smells strongly of old paper, algae, and deep, stagnant water.",
+    spawn: "Always present on the upper grand balconies.",
+    interaction: "Highly suspicious. Will not sell rare items to players with low reputation or known thieves.",
+    inventory: [
+      { item: "Antidotes & Focus Crystals", cost: "300c", chance: "100%" },
+      { item: "Uncommon Grimoires & Stilettos", cost: "1,200c", chance: "100%" },
+      { item: "Legendary Lore Fragment or Focus", cost: "10,000c", chance: "5% (Roll 20)" }
+    ]
+  },
+  "Sister Vex": {
+    name: "Sister Vex", title: "The Purifier", icon: "🌲", region: "Dark Enchanted Forest", danger: 3,
+    role: "Curse Breaker", color: "#ff9800",
+    quote: "Do not bring that filth into my chapel unless you are ready to bleed for it.",
+    lore: "An exiled Healer who set up a sanctuary in a ruined forest chapel. She is the only one on the map who can safely extract Void Infections from looted items.",
+    sensory: "The smell of burning sage is overpowering. She hums a low, resonant hymn that vibrates in your teeth.",
+    spawn: "The chapel is hidden. Requires a minor offering of blood at the treeline to reveal the path.",
+    interaction: "Refuses coins for purification. Trades only in 'Life Echoes'.",
+    inventory: [
+      { item: "Aether Bandages (Heals 3 HP, cures bleed)", cost: "250c", chance: "100%" },
+      { item: "Holy Salt (Wards an area for 1 rest)", cost: "500c", chance: "100%" },
+      { item: "Purify Void Infection from Item", cost: "-1 Temp Stat Debuff or 1 Max HP", chance: "Always" }
+    ]
+  }
+};
 
 
 
@@ -1929,59 +1987,151 @@ return`<div style="background:rgba(138,90,220,0.05);border:1px solid var(--borde
 }
 
 function renderNPCs() {
-  return `
-    <div class="card-glow">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-        <div class="section-title" style="margin-bottom:0">🏠 Moon Squad HQ Residents</div>
-        <button class="btn btn-sm btn-green" onclick="STATE.showAddResident=!STATE.showAddResident;render()">
-          ${STATE.showAddResident ? '✕ Cancel' : '+ Add NPC'}
-        </button>
-      </div>
-      ${STATE.showAddResident ? `
-        <div class="roll-box" style="margin-bottom:12px">
-          <label class="label">NPC Name</label>
-          <input class="input" id="res-name" placeholder="Enter name..." style="margin-bottom:8px">
-          <label class="label">Role</label>
-          <select class="select" id="res-role" style="margin-bottom:10px">
-            ${Object.entries(RESIDENT_ROLES).map(([k, r]) => `<option value="${k}">${r.icon} ${r.label}</option>`).join('')}
-          </select>
-          <button class="btn btn-purple btn-full" onclick="addResident()">Confirm Resident</button>
-        </div>
-      ` : ''}
-      ${STATE.baseResidents.length === 0 ? '<div class="empty-state">No residents currently at HQ.</div>' : 
-        STATE.baseResidents.map((r, i) => {
-          const roleData = RESIDENT_ROLES[r.role] || {icon:'👤', label:'Unknown', color:'#bbb', bonus:''};
-          const isShady = r.role === 'smuggler' || r.role === 'informant';
-          const loyalty = r.loyalty || 5;
-          const loyaltyColor = loyalty >= 7 ? 'var(--green)' : loyalty <= 3 ? 'var(--red)' : 'var(--gold)';
-          
-          return `
-          <div class="room-card card" style="display:block; margin-bottom:8px; padding:10px; border-color:${isShady ? loyaltyColor+'50' : 'var(--border)'}">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start">
-              <div>
-                <div style="font-weight:bold; font-size:0.85rem; color:${roleData.color}">${roleData.icon} ${esc(r.name)}</div>
-                <div style="font-size:0.65rem; color:var(--dim)">Role: ${roleData.label}</div>
-                <div style="font-size:0.6rem; color:var(--purple-light); margin-top:2px">✦ ${roleData.bonus}</div>
-              </div>
-              <button class="btn btn-sm btn-red" onclick="rmResident(${i})">✕</button>
-            </div>
-            ${isShady ? `
-              <div style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.05)">
-                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.65rem">
-                  <span style="color:var(--dim)">Loyalty: <b style="color:${loyaltyColor}">${loyalty}/10</b></span>
-                  <div style="display:flex; gap:4px">
-                    <button class="btn btn-sm" style="padding:2px 6px; border-color:var(--red); color:var(--red)" onclick="adjLoyalty(${i}, -1)">-</button>
-                    <button class="btn btn-sm" style="padding:2px 6px; border-color:var(--green); color:var(--green)" onclick="adjLoyalty(${i}, 1)">+</button>
-                  </div>
-                </div>
-                ${loyalty <= 3 ? `<div style="font-size:0.55rem; color:var(--red); margin-top:4px; font-weight:bold">⚠️ WARNING: Flight or betrayal imminent. Pay them.</div>` : ''}
-              </div>
-            ` : ''}
-          </div>
-        `}).join('')}
+  if (!STATE.npcMainTab) STATE.npcMainTab = 'hq';
+
+  const nav = `
+    <div class="tabs" style="margin-bottom:15px; border-radius:8px; border:1px solid var(--border); overflow:hidden">
+      <div class="tab ${STATE.npcMainTab === 'hq' ? 'active' : ''}" style="flex:1; text-align:center; background:rgba(10,8,30,0.8); padding:10px 4px" onclick="STATE.npcMainTab='hq';render()">🏠 HQ Residents</div>
+      <div class="tab ${STATE.npcMainTab === 'world' ? 'active' : ''}" style="flex:1; text-align:center; background:rgba(10,8,30,0.8); padding:10px 4px" onclick="STATE.npcMainTab='world';render()">🌍 World NPCs</div>
     </div>
   `;
+
+  let content = '';
+
+  if (STATE.npcMainTab === 'hq') {
+    content = `
+      <div class="card-glow">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+          <div class="section-title" style="margin-bottom:0">🏠 Moon Squad HQ</div>
+          <button class="btn btn-sm btn-green" onclick="STATE.showAddResident=!STATE.showAddResident;render()">
+            ${STATE.showAddResident ? '✕ Cancel' : '+ Add NPC'}
+          </button>
+        </div>
+        ${STATE.showAddResident ? `
+          <div class="roll-box" style="margin-bottom:12px">
+            <label class="label">NPC Name</label>
+            <input class="input" id="res-name" placeholder="Enter name..." style="margin-bottom:8px">
+            <label class="label">Role</label>
+            <select class="select" id="res-role" style="margin-bottom:10px">
+              ${Object.entries(RESIDENT_ROLES).map(([k, r]) => `<option value="${k}">${r.icon} ${r.label}</option>`).join('')}
+            </select>
+            <button class="btn btn-purple btn-full" onclick="addResident()">Confirm Resident</button>
+          </div>
+        ` : ''}
+        ${STATE.baseResidents.length === 0 ? '<div class="empty-state">No residents currently at HQ.</div>' : 
+          STATE.baseResidents.map((r, i) => {
+            const roleData = RESIDENT_ROLES[r.role] || {icon:'👤', label:'Unknown', color:'#bbb', bonus:''};
+            const isShady = r.role === 'smuggler' || r.role === 'informant';
+            const loyalty = r.loyalty || 5;
+            const loyaltyColor = loyalty >= 7 ? 'var(--green)' : loyalty <= 3 ? 'var(--red)' : 'var(--gold)';
+            
+            return `
+            <div class="room-card card" style="display:block; margin-bottom:8px; padding:10px; border-color:${isShady ? loyaltyColor+'50' : 'var(--border)'}">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start">
+                <div>
+                  <div style="font-weight:bold; font-size:0.85rem; color:${roleData.color}">${roleData.icon} ${esc(r.name)}</div>
+                  <div style="font-size:0.65rem; color:var(--dim)">Role: ${roleData.label}</div>
+                  <div style="font-size:0.6rem; color:var(--purple-light); margin-top:2px">✦ ${roleData.bonus}</div>
+                </div>
+                <button class="btn btn-sm btn-red" onclick="rmResident(${i})">✕</button>
+              </div>
+              ${isShady ? `
+                <div style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.05)">
+                  <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.65rem">
+                    <span style="color:var(--dim)">Loyalty: <b style="color:${loyaltyColor}">${loyalty}/10</b></span>
+                    <div style="display:flex; gap:4px">
+                      <button class="btn btn-sm" style="padding:2px 6px; border-color:var(--red); color:var(--red)" onclick="adjLoyalty(${i}, -1)">-</button>
+                      <button class="btn btn-sm" style="padding:2px 6px; border-color:var(--green); color:var(--green)" onclick="adjLoyalty(${i}, 1)">+</button>
+                    </div>
+                  </div>
+                  ${loyalty <= 3 ? `<div style="font-size:0.55rem; color:var(--red); margin-top:4px; font-weight:bold">⚠️ WARNING: Flight or betrayal imminent. Pay them.</div>` : ''}
+                </div>
+              ` : ''}
+            </div>
+          `}).join('')}
+      </div>
+    `;
+  } else if (STATE.npcMainTab === 'world') {
+    const npcNames = Object.keys(WORLD_NPCS);
+    if (!STATE.worldNpcTab) STATE.worldNpcTab = npcNames[0];
+    if (!STATE.worldNpcSec) STATE.worldNpcSec = 'lore';
+    const n = WORLD_NPCS[STATE.worldNpcTab];
+
+    const npcListNav = `
+      <div class="arsenal-nav" style="margin-bottom:12px">
+        ${npcNames.map(name => `
+          <div class="arsenal-tab ${STATE.worldNpcTab === name ? 'active' : ''}" onclick="STATE.worldNpcTab='${name}';STATE.worldNpcSec='lore';render()">
+            ${WORLD_NPCS[name].icon} ${name.split(',')[0]}
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    const subNav = `
+      <div class="lore-tab-bar" style="margin-bottom:12px">
+        ${['lore', 'rules', 'shop'].map(sec => `
+          <div class="lore-tab ${STATE.worldNpcSec === sec ? 'active' : ''}" onclick="STATE.worldNpcSec='${sec}';render()">
+            ${sec === 'lore' ? 'Identity & Lore' : sec === 'rules' ? 'Encounter Rules' : 'The Shop'}
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    let secContent = '';
+    if (STATE.worldNpcSec === 'lore') {
+      secContent = `
+        <div style="font-size:0.75rem; color:var(--gold); font-style:italic; margin-bottom:10px; padding-left:8px; border-left:2px solid var(--gold)">"${n.quote}"</div>
+        <div style="font-size:0.7rem; color:var(--text); line-height:1.5; margin-bottom:12px"><b>Lore:</b> ${n.lore}</div>
+        <div style="font-size:0.65rem; color:var(--dim); background:rgba(0,0,0,0.3); padding:8px; border-radius:6px"><b>Senses:</b> ${n.sensory}</div>
+      `;
+    } else if (STATE.worldNpcSec === 'rules') {
+      secContent = `
+        <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; margin-bottom:8px">
+          <div style="font-size:0.6rem; color:var(--blue); text-transform:uppercase; margin-bottom:2px">📍 Location</div>
+          <div style="font-size:0.75rem; color:#fff; font-weight:bold">${n.region} <span style="color:${DANGER_COLORS[n.danger]}; font-size:0.65rem; font-weight:normal">(Danger: ${n.danger}/5)</span></div>
+        </div>
+        <div style="background:rgba(239,83,80,0.1); padding:8px; border-radius:6px; margin-bottom:8px; border:1px solid rgba(239,83,80,0.3)">
+          <div style="font-size:0.6rem; color:var(--red); text-transform:uppercase; margin-bottom:2px">🎲 Spawn Rules</div>
+          <div style="font-size:0.7rem; color:#fff">${n.spawn}</div>
+        </div>
+        <div style="background:rgba(138,90,220,0.1); padding:8px; border-radius:6px; border:1px solid rgba(138,90,220,0.3)">
+          <div style="font-size:0.6rem; color:var(--purple-light); text-transform:uppercase; margin-bottom:2px">Interaction</div>
+          <div style="font-size:0.65rem; color:#fff">${n.interaction}</div>
+        </div>
+      `;
+    } else if (STATE.worldNpcSec === 'shop') {
+      secContent = `
+        <div class="section-title" style="margin-bottom:6px">Inventory & Services</div>
+        ${n.inventory.map(item => `
+          <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.05); padding:8px; border-radius:6px; margin-bottom:6px">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start">
+              <span style="font-size:0.75rem; font-weight:bold; color:#fff">${item.item}</span>
+              <span style="font-size:0.65rem; color:var(--dim); text-align:right">Stock: <b style="color:${item.chance.includes('100') || item.chance.includes('Always') ? 'var(--green)' : 'var(--gold)'}">${item.chance}</b></span>
+            </div>
+            <div style="font-size:0.65rem; color:${n.color}; margin-top:4px; font-weight:bold">Cost: ${item.cost}</div>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    content = npcListNav + `
+      <div class="card-glow" style="border-color:${n.color}40">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px">
+          <div style="font-size:1.4rem; font-weight:bold; color:#fff">${n.icon} ${n.name}</div>
+          <div style="font-size:0.6rem; color:${n.color}; border:1px solid ${n.color}; padding:2px 6px; border-radius:10px">${n.role}</div>
+        </div>
+        <div style="font-size:0.65rem; color:var(--dim); margin-bottom:12px">${n.title}</div>
+        ${subNav}
+        <div class="fade-in" style="min-height:160px">
+          ${secContent}
+        </div>
+      </div>
+    `;
+  }
+
+  return nav + content;
 }
+
 
 
 function renderVillains() {
