@@ -1021,7 +1021,23 @@ const WORLD_NPCS = {
       { item: "Holy Salt (Wards an area for 1 rest)", cost: "500c", chance: "100%" },
       { item: "Purify Void Infection from Item", cost: "-1 Temp Stat Debuff or 1 Max HP", chance: "Always" }
     ]
+  },
+    "Krell the Foreman": {
+    name: "Krell", title: "The Bedrock Foreman", icon: "🔨", region: "Underground Caverns", danger: 3,
+    role: "Master Smith", color: "#ffb300",
+    quote: "The mountain don't care about your stories. It only cares about the weight of your swing.",
+    lore: "Krell was the lead excavation officer when the Shift happened. He refused to abandon the deep veins, staying behind to protect the Hollow Ore deposits. Over decades, the raw ore has literally begun to replace his skin. He is the only being in the realm who knows how to fold Hollow Ore into existing weapons without shattering them.",
+    sensory: "Smells of sulfur, wet stone, and hot iron. His voice sounds like two tectonic plates grinding together. When he moves, you hear the heavy clank-thud of metal boots and the hiss of a portable steam-forge strapped to his back.",
+    spawn: "Requires a Perception 12+ check to hear his rhythmic hammering through the cavern walls. If the Squad is carrying more than 5x Hollow Ore, Krell will find them.",
+    interaction: "Values effort. Gives a 20% discount to players presenting 'Worn' or 'Damaged' weapons. Refuses to work for Aether-Kith (calls them 'cloud-breath').",
+    inventory: [
+      { item: "Hollow Reforge (Permanent +1 ATK to weapon)", cost: "3,000c + 2x Hollow Ore", chance: "Always" },
+      { item: "Shatter-Guard (Weapon can never Break again)", cost: "1,500c + 1x Hollow Ore", chance: "Always" },
+      { item: "Deep-Blast Charge (Consumable: 2d10 Env. DMG)", cost: "800c", chance: "Always" },
+      { item: "Heavy Work Gloves (Passive: +1 STR checks)", cost: "500c", chance: "100%" }
+    ]
   }
+
 };
 
 
