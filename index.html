@@ -3045,15 +3045,46 @@ function submitLogEntry() {
 
 function addInvItem(playerId) {
   const input = document.getElementById(`inv-add-${playerId}`);
+  const cat = document.getElementById(`inv-cat-${playerId}`);
   if(!input || !input.value.trim()) return;
+  
   const p = STATE.players.find(x => x.id === playerId);
   if(p) { 
     if(!p.inventory) p.inventory = []; 
-    p.inventory.push(input.value.trim()); 
-    if(STATE.sessionActive) addLog({type:'item', who:p.charname, what:`Obtained item: ${input.value.trim()}`});
+    // Save as an object so we know the category
+    p.inventory.push({ name: input.value.trim(), type: cat ? cat.value : 'misc' }); 
+    
+    if(STATE.sessionActive) addLog({type:'item', who:p.charname, what:`Obtained ${cat.value}: ${input.value.trim()}`});
     input.value = ''; saveAll(); render(); 
   }
 }
+
+// ✦ NEW FUNCTION: Update Player Images on the fly
+function updatePlayerImage(id, prop, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const MAX_SIZE = 150; 
+      let w = img.width; let h = img.height;
+      if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } } 
+      else { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      
+      updatePlayer(id, { [prop]: canvas.toDataURL('image/jpeg', 0.8) });
+      addLog({type:'note', who:'System', what:`Updated ${prop === 'charImg' ? 'Character' : 'Player'} Avatar.`});
+      render();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 
 function rmInvItem(playerId, index) {
   const p = STATE.players.find(x => x.id === playerId);
