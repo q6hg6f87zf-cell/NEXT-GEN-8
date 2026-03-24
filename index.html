@@ -1813,14 +1813,17 @@ return`<div class="modal-box">
           </div>
         </div>
       </div>
-      <div style="font-size:0.62rem; color:var(--purple-light); margin-top:8px">✨ Buff: ${COMPANION_TYPES[p.companion.type].buff}</div>
+             <div style="font-size:0.62rem; color:var(--blue); margin-top:8px; font-weight:bold">⚡ Active: <span style="font-weight:normal">${COMPANION_TYPES[p.companion.type].active_ability}</span></div>
+      <div style="font-size:0.62rem; color:var(--purple-light); margin-top:4px; font-weight:bold">✨ Passive: <span style="font-weight:normal">${COMPANION_TYPES[p.companion.type].passive_trait}</span></div>
       ${p.companion.status === 'fled' ? `
         <button class="btn btn-sm btn-full" style="margin-top:8px; border-color:var(--green); color:var(--green)" onclick="healCompanion(${p.id})">🏥 Restore at Infirmary (500c)</button>
       ` : ''}
     `}
   </div>
 
-  <div class="section-title" style="margin-top:12px">Gift Power</div> 
+  <div class="section-title" style="margin-top:12px">Race Quirk & Gift Power</div> 
+  ${p.race && RACES[p.race] ? `<div style="background:rgba(10,8,30,0.8);border-left:2px solid var(--gold);padding:6px 10px;font-size:0.66rem;color:#bbb;margin-bottom:10px;border-radius:0 6px 6px 0;font-family:Arial,sans-serif"><span style="color:var(--gold);font-weight:bold">🧬 ${p.race} Quirk: </span>${esc(RACES[p.race].biological_quirk)}</div>` : ''}
+
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"> 
     <span style="font-size:0.72rem;color:${p.giftPowerUsed?'var(--dim)':'var(--green)'};font-family:Arial,sans-serif">${p.giftPowerUsed?'✕ Used':'✓ Available'}</span> 
     <button class="btn btn-sm" onclick="updatePlayer(${p.id},{giftPowerUsed:${!p.giftPowerUsed}});render()">${p.giftPowerUsed?'Reset':'Mark Used'}</button> 
@@ -3159,7 +3162,7 @@ function renderCompendium() {
     content = renderClasses();
   } else if (STATE.compendiumTab === 'arsenal') {
     content = renderArsenal();
-  } else if (STATE.compendiumTab === 'companions') {
+    } else if (STATE.compendiumTab === 'companions') {
     content = `<div class="info-bar">Companions cost 1,000 Coins ($13.00 PayPal). If they reach 0 HP, they flee to HQ and you lose their buff until you pay the Infirmary to heal them.</div>` + 
     Object.entries(COMPANION_TYPES).map(([id, c]) => `
       <div class="card-glow" style="border-left:4px solid var(--purple-light)">
@@ -3167,13 +3170,34 @@ function renderCompendium() {
           <div style="font-size:1.2rem; font-weight:bold; color:#fff">${c.icon} ${c.name}</div>
           <div style="font-size:0.7rem; color:var(--green); font-weight:bold">Max HP: ${c.hp}</div>
         </div>
+        
         <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; margin-bottom:8px">
-          <div style="font-size:0.6rem; color:var(--dim); text-transform:uppercase">Passive Buff</div>
-          <div style="font-size:0.75rem; color:var(--purple-light); font-weight:bold">${c.buff}</div>
+          <div style="font-size:0.6rem; color:var(--blue); text-transform:uppercase; margin-bottom:2px">⚡ Active Ability</div>
+          <div style="font-size:0.7rem; color:#fff">${c.active_ability}</div>
         </div>
-        <div style="font-size:0.7rem; color:var(--text); line-height:1.5; font-style:italic">"${c.lore}"</div>
+
+        <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; margin-bottom:8px">
+          <div style="font-size:0.6rem; color:var(--green); text-transform:uppercase; margin-bottom:2px">✨ Passive Trait</div>
+          <div style="font-size:0.7rem; color:#fff">${c.passive_trait}</div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px">
+          <div style="background:rgba(255,152,0,0.1); padding:8px; border-radius:6px; border:1px solid rgba(255,152,0,0.3)">
+            <div style="font-size:0.6rem; color:var(--gold); text-transform:uppercase; margin-bottom:2px">Maintenance</div>
+            <div style="font-size:0.65rem; color:#fff">${c.maintenance}</div>
+          </div>
+          <div style="background:rgba(138,90,220,0.1); padding:8px; border-radius:6px; border:1px solid rgba(138,90,220,0.3)">
+            <div style="font-size:0.6rem; color:var(--purple-light); text-transform:uppercase; margin-bottom:2px">Quirk</div>
+            <div style="font-size:0.65rem; color:#fff">${c.behavior_quirk}</div>
+          </div>
+        </div>
+
+        <div style="font-size:0.7rem; color:var(--text); line-height:1.5; margin-bottom:6px"><b>Lore:</b> ${c.lore}</div>
+        <div style="font-size:0.65rem; color:var(--dim); margin-bottom:6px"><b>Looks:</b> ${c.physical_description}</div>
+        <div style="font-size:0.65rem; color:var(--dim)"><b>Senses:</b> ${c.sensory_profile}</div>
       </div>
     `).join('');
+
   } else if (STATE.compendiumTab === 'rules') {
     content = renderRules();
   }
