@@ -3648,7 +3648,7 @@ function renderHQ() {
     `;
   }
 
-      // 3. THE BUNKHOUSE (Personal Quarters & NPCs)
+        // 3. THE BUNKHOUSE (Personal Quarters & NPCs)
   else if (STATE.hqTab === 'bunkhouse') {
     content = `
       <div class="card">
@@ -3677,42 +3677,41 @@ function renderHQ() {
               let iconColor = isUnlocked ? 'var(--green)' : 'rgba(255,255,255,0.1)';
               let checkIcon = isUnlocked ? '✓' : '○';
               
-              return \`
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.03); font-size:0.65rem; color:\${textColor}">
+              return `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.03); font-size:0.65rem; color:${textColor}">
                   <div style="display:flex; gap:6px; align-items:center; flex-shrink:0">
-                    <span style="color:\${iconColor}; font-weight:bold; font-size:0.75rem">\${checkIcon}</span>
-                    <span style="font-weight:bold">Lv.\${tierLv}</span>
-                    <span style="color:var(--dimmer)">(\${tier.cost.toLocaleString()}c)</span>
+                    <span style="color:${iconColor}; font-weight:bold; font-size:0.75rem">${checkIcon}</span>
+                    <span style="font-weight:bold">Lv.${tierLv}</span>
+                    <span style="color:var(--dimmer)">(${tier.cost.toLocaleString()}c)</span>
                   </div>
-                  <div style="text-align:right; flex:1; margin-left:10px; line-height:1.3">\${tier.bonus}</div>
+                  <div style="text-align:right; flex:1; margin-left:10px; line-height:1.3">${tier.bonus}</div>
                 </div>
-              \`;
+              `;
             }).join('');
 
-            return \`
-              <div class="card-glow" style="margin-bottom:12px; border-color:\${lv > 0 ? 'var(--purple-light)' : 'var(--border)'}">
+            return `
+              <div class="card-glow" style="margin-bottom:12px; border-color:${lv > 0 ? 'var(--purple-light)' : 'var(--border)'}">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05)">
                   <div>
-                    <div style="font-weight:bold; font-size:1.1rem; color:#fff">\${q.icon} \${q.name}</div>
-                    <div style="font-size:0.65rem; color:var(--purple-light); margin-top:2px">Current: Level \${lv}</div>
+                    <div style="font-weight:bold; font-size:1.1rem; color:#fff">${q.icon} ${q.name}</div>
+                    <div style="font-size:0.65rem; color:var(--purple-light); margin-top:2px">Current: Level ${lv}</div>
                   </div>
-                  \${next ? \`<button class="btn btn-sm btn-green" style="padding:6px 10px; font-size:0.7rem" onclick="upgradePersonalQuarter(\${p.id}, '\${key}')">Buy Lv.\${lv+1} (\${next.cost.toLocaleString()})</button>\` : \`<span style="color:var(--gold); font-size:0.65rem; font-weight:bold; padding:4px 8px; border:1px solid var(--gold); border-radius:4px; background:rgba(255,213,79,0.1)">MAXED</span>\`}
+                  ${next ? `<button class="btn btn-sm btn-green" style="padding:6px 10px; font-size:0.7rem" onclick="upgradePersonalQuarter(${p.id}, '${key}')">Buy Lv.${lv+1} (${next.cost.toLocaleString()})</button>` : `<span style="color:var(--gold); font-size:0.65rem; font-weight:bold; padding:4px 8px; border:1px solid var(--gold); border-radius:4px; background:rgba(255,213,79,0.1)">MAXED</span>`}
                 </div>
                 <div style="background:rgba(0,0,0,0.4); border-radius:6px; padding:4px 10px">
-                  \${pathHTML}
+                  ${pathHTML}
                 </div>
               </div>
-            \`;
+            `;
           }).join('');
         })() : '<div class="empty-state">Select a player to view and manage their room upgrades.</div>'}
       </div>
     `;
   }
 
-
-
   return hqNav + content;
 }
+
 // ✦ Phase 4: Smart Loot & Environmental Curses
 function rollSmartLoot(locId, playerId) {
   const loc = WORLD_LOCATIONS.find(l => l.id === locId);
