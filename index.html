@@ -3125,22 +3125,77 @@ function renderCompendium() {
   `;
 
   let content = '';
-    if (STATE.compendiumTab === 'races') {
-    content = Object.entries(RACES).map(([id, r]) => `
-      <div class="card-glow" style="border-left:4px solid var(--gold)">
-        <div style="font-size:1.2rem; font-weight:bold; color:#fff; margin-bottom:4px">${r.icon} ${r.name}</div>
-        <div style="font-size:0.65rem; color:var(--gold); font-style:italic; margin-bottom:10px">"${r.tagline}"</div>
-        
+      if (STATE.compendiumTab === 'races') {
+    const raceNames = Object.keys(RACES);
+    if (!STATE.compendiumRaceTab) STATE.compendiumRaceTab = raceNames[0];
+    if (!STATE.compendiumRaceSec) STATE.compendiumRaceSec = 'overview';
+    const r = RACES[STATE.compendiumRaceTab];
+
+    const raceNav = `
+      <div class="arsenal-nav" style="margin-bottom:12px">
+        ${raceNames.map(name => `
+          <div class="arsenal-tab ${STATE.compendiumRaceTab === name ? 'active' : ''}" onclick="STATE.compendiumRaceTab='${name}';STATE.compendiumRaceSec='overview';render()">
+            ${RACES[name].icon} ${name}
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    const subNav = `
+      <div class="lore-tab-bar" style="margin-bottom:12px">
+        ${['overview', 'traits', 'culture', 'lore'].map(sec => `
+          <div class="lore-tab ${STATE.compendiumRaceSec === sec ? 'active' : ''}" onclick="STATE.compendiumRaceSec='${sec}';render()">
+            ${sec.charAt(0).toUpperCase() + sec.slice(1)}
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    let secContent = '';
+    if (STATE.compendiumRaceSec === 'overview') {
+      secContent = `
+        <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; margin-bottom:8px; border-left:2px solid var(--purple-light)">
+          <div style="font-size:0.6rem; color:var(--dim); text-transform:uppercase">Racial Ability</div>
+          <div style="font-size:0.75rem; color:var(--purple-light); font-weight:bold">${r.ability}</div>
+        </div>
+        <div class="section-title">Base Stat Modifiers</div>
+        <div class="stat-grid" style="margin-bottom:10px">
+          ${Object.entries(r.stats).map(([s, v]) => `
+            <div style="background:rgba(255,255,255,0.03); padding:6px; border-radius:6px; text-align:center">
+              <div style="font-size:0.55rem; color:var(--dim)">${s}</div>
+              <div style="font-size:0.8rem; font-weight:bold; color:${v > 0 ? 'var(--green)' : v < 0 ? 'var(--red)' : '#fff'}">${v > 0 ? '+'+v : v}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="section-title">Starting Kit</div>
+        <ul style="font-size:0.7rem; color:#bbb; padding-left:16px; margin-bottom:8px">
+          ${r.starting_kit.map(item => `<li>${esc(item)}</li>`).join('')}
+        </ul>
+      `;
+    } else if (STATE.compendiumRaceSec === 'traits') {
+      secContent = `
         <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; margin-bottom:8px">
-          <div style="font-size:0.6rem; color:var(--dim); text-transform:uppercase; margin-bottom:2px">Biological Quirk</div>
+          <div style="font-size:0.6rem; color:var(--dim); text-transform:uppercase; margin-bottom:2px">🧬 Biological Quirk</div>
           <div style="font-size:0.7rem; color:var(--purple-light)">${r.biological_quirk}</div>
         </div>
-
+        <div style="background:rgba(239,83,80,0.1); padding:8px; border-radius:6px; margin-bottom:8px; border:1px solid rgba(239,83,80,0.3)">
+          <div style="font-size:0.6rem; color:var(--red); text-transform:uppercase; margin-bottom:2px">⚠️ Vulnerability</div>
+          <div style="font-size:0.7rem; color:#fff">${r.vulnerability || 'None specified.'}</div>
+        </div>
+        <div class="section-title">Sub-Lineages</div>
+        ${Object.entries(r.lineage).map(([lname, ldesc]) => `
+          <div style="font-size:0.7rem; margin-bottom:4px"><span style="color:var(--gold); font-weight:bold">${lname}:</span> <span style="color:#bbb">${ldesc}</span></div>
+        `).join('')}
+      `;
+    } else if (STATE.compendiumRaceSec === 'culture') {
+      secContent = `
         <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; margin-bottom:8px">
           <div style="font-size:0.6rem; color:var(--dim); text-transform:uppercase; margin-bottom:2px">Social Standing</div>
           <div style="font-size:0.7rem; color:#fff">${r.social_standing}</div>
         </div>
-
+        <div style="font-size:0.7rem; color:var(--text); line-height:1.5; margin-bottom:10px; font-style:italic; padding-left:8px; border-left:2px solid var(--dim)">
+          <b>Philosophy:</b> ${r.philosophy}
+        </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px">
           <div style="background:rgba(239,83,80,0.1); padding:8px; border-radius:6px; border:1px solid rgba(239,83,80,0.3)">
             <div style="font-size:0.6rem; color:var(--red); text-transform:uppercase; margin-bottom:2px">Taboo</div>
@@ -3151,12 +3206,30 @@ function renderCompendium() {
             <div style="font-size:0.65rem; color:#fff">${r.fear}</div>
           </div>
         </div>
+      `;
+    } else if (STATE.compendiumRaceSec === 'lore') {
+      secContent = `
+        <div style="font-size:0.72rem; color:var(--text); line-height:1.6; margin-bottom:12px">
+          ${r.lore}
+        </div>
+        <div class="section-title">Physical Appearance</div>
+        <div style="font-size:0.7rem; color:#bbb; line-height:1.5; background:rgba(0,0,0,0.3); padding:8px; border-radius:6px">
+          ${r.character_description}
+        </div>
+      `;
+    }
 
-        <div style="font-size:0.7rem; color:var(--text); line-height:1.5; margin-bottom:8px; font-style:italic"><b>Philosophy:</b> ${r.philosophy}</div>
-        <div style="font-size:0.7rem; color:var(--text); line-height:1.5; margin-bottom:8px"><b>Lore:</b> ${r.lore}</div>
-        <div style="font-size:0.6rem; color:var(--dim); border-top:1px solid rgba(255,255,255,0.1); padding-top:6px"><b>Appearance:</b> ${r.character_description}</div>
+    content = raceNav + `
+      <div class="card-glow" style="border-color:var(--gold)40">
+        <div style="font-size:1.4rem; font-weight:bold; color:#fff; margin-bottom:2px">${r.icon} ${r.name}</div>
+        <div style="font-size:0.65rem; color:var(--gold); font-style:italic; margin-bottom:12px">"${r.tagline}"</div>
+        ${subNav}
+        <div class="fade-in" style="min-height:160px">
+          ${secContent}
+        </div>
       </div>
-    `).join('');
+    `;
+
 
   } else if (STATE.compendiumTab === 'classes') {
     content = renderClasses();
