@@ -1790,19 +1790,52 @@ return`<div class="player-card${p.protectionBalance>0?' protected':''}${p.isDead
 }
 
 
-function renderPlayerModal(){
-const p=STATE.players.find(x=>x.id===STATE.selectedPlayer);if(!p)return'';
-const pct=Math.max(0,(p.hp/p.maxHp)*100);const hc=hpColor(pct);
-const stats=getPlayerStats(p);
-const FULL={STR:'Strength',DEF:'Defense',INT:'Intelligence',WIS:'Wisdom',SPD:'Speed',CHA:'Charisma',LCK:'Luck'};
-return`<div class="modal-box"> 
+function renderPlayerModal() {
+  const p = STATE.players.find(x => x.id === STATE.selectedPlayer); 
+  if(!p) return '';
+  const pct = Math.max(0, (p.hp / p.maxHp) * 100); 
+  const hc = hpColor(pct);
+  const stats = getPlayerStats(p);
+  const FULL = {STR:'Strength', DEF:'Defense', INT:'Intelligence', WIS:'Wisdom', SPD:'Speed', CHA:'Charisma', LCK:'Luck'};
+  
+  // ✦ Group the inventory items safely (handles legacy string items too)
+  let invHTML = '';
+  const categories = ['weapon', 'enchantment', 'item', 'misc'];
+  categories.forEach(cat => {
+    const catItems = (p.inventory || []).map((item, i) => ({item, index: i})).filter(x => {
+      if (typeof x.item === 'string') return cat === 'misc';
+      return x.item.type === cat;
+    });
+    
+    if (catItems.length > 0) {
+      invHTML += `<div style="font-size:0.6rem; color:var(--gold); text-transform:uppercase; margin-top:8px; margin-bottom:2px; letter-spacing:1px">${cat}s</div>`;
+      catItems.forEach(x => {
+        const name = typeof x.item === 'string' ? x.item : x.item.name;
+        invHTML += `
+          <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.74rem; color:#bbb; font-family:Arial,sans-serif">
+            <span>${esc(name)}</span>
+            <button onclick="rmInvItem(${p.id},${x.index})" style="background:none; border:none; color:var(--dim); cursor:pointer">✕</button>
+          </div>`;
+      });
+    }
+  });
+
+  return `
+<div class="modal-box"> 
   <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
     <div style="display:flex; gap:10px;">
-      ${p.charImg ? `<img src="${p.charImg}" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:1px solid var(--border)">` : ''}
-      ${p.playerImg ? `<img src="${p.playerImg}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:1px solid var(--purple)">` : ''}
+      <div style="position:relative; cursor:pointer" title="Tap to change Character Avatar">
+        ${p.charImg ? `<img src="${p.charImg}" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:1px solid var(--border)">` : `<div style="width:50px; height:50px; border-radius:8px; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:var(--dim)">Avatar</div>`}
+        <input type="file" accept="image/*" style="position:absolute; inset:0; opacity:0; cursor:pointer" onchange="updatePlayerImage(${p.id}, 'charImg', this)">
+      </div>
+      <div style="position:relative; cursor:pointer" title="Tap to change Player Photo">
+        ${p.playerImg ? `<img src="${p.playerImg}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:1px solid var(--purple)">` : `<div style="width:50px; height:50px; border-radius:50%; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:var(--dim)">Photo</div>`}
+        <input type="file" accept="image/*" style="position:absolute; inset:0; opacity:0; cursor:pointer" onchange="updatePlayerImage(${p.id}, 'playerImg', this)">
+      </div>
     </div>
     <button style="background:none;border:none;color:var(--dim);font-size:1.3rem;cursor:pointer;height:fit-content" onclick="STATE.selectedPlayer=null;render()">✕</button>
   </div>
+  
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px"> 
     <div> 
       <div style="font-weight:bold;font-size:0.95rem;color:#fff">${esc(p.charname)} — ${CLASS_ICON[p.cls]||''} ${p.cls}</div> 
@@ -1810,6 +1843,7 @@ return`<div class="modal-box">
       ${p.title?`<div style="font-size:0.7rem;color:var(--gold);font-style:italic;margin-top:2px">✦ ${esc(p.title)}</div>`:''} 
     </div> 
   </div> 
+
   <div class="card" style="margin-bottom:12px"> 
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"> 
       <span style="font-size:0.6rem;color:var(--dim);text-transform:uppercase;letter-spacing:2px;font-family:Arial,sans-serif">Hit Points</span> 
@@ -1826,8 +1860,8 @@ return`<div class="modal-box">
     <div style="font-size:0.6rem;color:var(--dim);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;font-family:Arial,sans-serif">Character Stats</div> 
       <div class="stat-grid"> 
       ${Object.entries(stats).map(([s,v])=>{
-        const c=STAT_COLORS[s];
-        const pct2=Math.min(100,(v/12)*100);
+        const c = STAT_COLORS[s];
+        const pct2 = Math.min(100,(v/12)*100);
         const isOverridden = p.statOverrides && p.statOverrides[s] !== undefined;
         return`<div>
           <div class="stat-label" style="align-items:center">
@@ -1841,28 +1875,39 @@ return`<div class="modal-box">
         </div>`;
       }).join('')} 
     </div> 
-
     ${p.traitLevel?`<div style="margin-top:10px;padding:5px 10px;background:rgba(138,90,220,0.1);border-radius:6px;font-size:0.68rem;color:${TRAIT_TIERS.find(t=>t.level===p.traitLevel)?.color||'var(--purple-light)'};font-family:Arial,sans-serif">Trait: ${p.traitLevel}</div>`:''} 
   </div> 
+
   ${p.repPassive?`<div style="background:rgba(10,8,30,0.8);border-left:2px solid var(--gold);padding:6px 10px;font-size:0.66rem;color:#bbb;margin-bottom:6px;border-radius:0 6px 6px 0;font-family:Arial,sans-serif"><span style="color:var(--gold);font-weight:bold">✦ Rep: </span>${esc(p.repPassive)}</div>`:''} 
   ${p.signatureSkill?`<div style="background:rgba(10,8,30,0.8);border-left:2px solid var(--blue);padding:6px 10px;font-size:0.66rem;color:#bbb;margin-bottom:6px;border-radius:0 6px 6px 0;font-family:Arial,sans-serif"><span style="color:var(--blue);font-weight:bold">⚡ ${esc(p.signatureSkill)}: </span>${esc(p.signatureSkillDesc||'')}</div>`:''} 
   ${p.shadowTrait?`<div style="background:rgba(10,8,30,0.8);border-left:2px solid var(--red);padding:6px 10px;font-size:0.66rem;color:#bbb;margin-bottom:6px;border-radius:0 6px 6px 0;font-family:Arial,sans-serif"><span style="color:var(--red);font-weight:bold">🌑 ${esc(p.shadowTrait)}: </span>${esc(p.shadowTraitDesc||'')}</div>`:''} 
   ${p.enchantment?`<div style="background:rgba(10,8,30,0.8);border-left:2px solid var(--gold);padding:6px 10px;font-size:0.66rem;color:#bbb;margin-bottom:6px;border-radius:0 6px 6px 0;font-family:Arial,sans-serif"><span style="color:var(--gold);font-weight:bold">✨ ${esc(p.enchantment)}: </span>${esc(p.enchantmentDesc||'')}</div>`:''} 
   ${p.destinyThread?`<div style="background:rgba(30,10,50,0.8);border-left:2px solid #ce93d8;padding:6px 10px;font-size:0.68rem;color:#ce93d8;margin-bottom:14px;border-radius:0 6px 6px 0;font-style:italic;font-family:Arial,sans-serif">🔮 “${esc(p.destinyThread)}”</div>`:''} 
+  
   <div class="section-title">Position</div> 
   <input class="input" style="margin-bottom:12px" value="${esc(p.position||'')}" onblur="updatePlayer(${p.id},{position:this.value})"> 
+  
   <div class="section-title">Inventory (${(p.inventory||[]).length})</div> 
-  ${(p.inventory||[]).map((item,i)=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.74rem;color:#bbb;font-family:Arial,sans-serif"><span>${esc(item)}</span><button onclick="rmInvItem(${p.id},${i})" style="background:none;border:none;color:var(--dim);cursor:pointer">✕</button></div>`).join('')} 
-  <div style="display:flex;gap:6px;margin-top:6px;margin-bottom:12px"> 
-    <input class="input" style="flex:1" id="inv-add-${p.id}" placeholder="Add item..."> 
+  ${invHTML || '<div style="font-size:0.65rem; color:var(--dim); margin-bottom:8px">Pack is empty.</div>'}
+  
+  <div style="display:flex; gap:6px; margin-top:10px; margin-bottom:12px"> 
+    <input class="input" style="flex:1" id="inv-add-${p.id}" placeholder="Item name..."> 
+    <select class="select" id="inv-cat-${p.id}" style="width:90px">
+      <option value="weapon">Weapon</option>
+      <option value="enchantment">Enchant</option>
+      <option value="item">Item</option>
+      <option value="misc">Misc</option>
+    </select>
     <button class="btn btn-sm btn-green" onclick="addInvItem(${p.id})">Add</button> 
   </div> 
+
   <div class="section-title">Consequences</div> 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px"> 
     ${[{type:'curse',label:'⚗ Cursed'},{type:'wanted',label:'🎯 Wanted'},{type:'exile',label:'🚫 Exiled'},{type:'servant',label:'⛓ Servant'}].map(c=>`<button class="btn btn-sm" style="background:rgba(30,20,50,0.8)" onclick="addConsequence(${p.id},'${c.type}','${c.label}')">+ ${c.label}</button>`).join('')} 
   </div> 
   ${(p.consequences||[]).map((c,i)=>`<div style="display:flex;justify-content:space-between;padding:5px 8px;background:rgba(10,8,25,0.8);border-radius:5px;margin-bottom:5px;font-size:0.72rem;font-family:Arial,sans-serif"><span>${c.label}</span><button onclick="rmConsequence(${p.id},${i})" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:0.68rem">✕ Lift</button></div>`).join('')} 
-  <div class="section-title">🐾 Companion Slot</div>
+  
+  <div class="section-title" style="margin-top:12px">🐾 Companion Slot</div>
   <div class="card" style="background:rgba(138,90,220,0.05); border-color:var(--border)">
     ${!p.companion ? `
       <div style="font-size:0.65rem; color:var(--dim); margin-bottom:8px">No companion equipped.</div>
@@ -1887,7 +1932,7 @@ return`<div class="modal-box">
           </div>
         </div>
       </div>
-             <div style="font-size:0.62rem; color:var(--blue); margin-top:8px; font-weight:bold">⚡ Active: <span style="font-weight:normal">${COMPANION_TYPES[p.companion.type].active_ability}</span></div>
+      <div style="font-size:0.62rem; color:var(--blue); margin-top:8px; font-weight:bold">⚡ Active: <span style="font-weight:normal">${COMPANION_TYPES[p.companion.type].active_ability}</span></div>
       <div style="font-size:0.62rem; color:var(--purple-light); margin-top:4px; font-weight:bold">✨ Passive: <span style="font-weight:normal">${COMPANION_TYPES[p.companion.type].passive_trait}</span></div>
       ${p.companion.status === 'fled' ? `
         <button class="btn btn-sm btn-full" style="margin-top:8px; border-color:var(--green); color:var(--green)" onclick="healCompanion(${p.id})">🏥 Restore at Infirmary (500c)</button>
@@ -1902,12 +1947,14 @@ return`<div class="modal-box">
     <span style="font-size:0.72rem;color:${p.giftPowerUsed?'var(--dim)':'var(--green)'};font-family:Arial,sans-serif">${p.giftPowerUsed?'✕ Used':'✓ Available'}</span> 
     <button class="btn btn-sm" onclick="updatePlayer(${p.id},{giftPowerUsed:${!p.giftPowerUsed}});render()">${p.giftPowerUsed?'Reset':'Mark Used'}</button> 
   </div> 
+
   <div style="display:flex;gap:8px;flex-wrap:wrap"> 
     ${p.isDead?`<button class="btn" style="background:var(--gold);color:#000" onclick="resurrect(${p.id})">⚗ Resurrect</button>`:`<button class="btn btn-red" onclick="markDead(${p.id})">☠ Mark Dead</button>`} 
     <button class="btn" style="background:rgba(20,16,50,0.9);color:var(--dim);border:1px solid var(--border)" onclick="STATE.selectedPlayer=null;render()">Close</button> 
   </div>
 </div>`;
 }
+
 
 function renderCreate(){
 const c=STATE.creation;
