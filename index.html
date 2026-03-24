@@ -3472,6 +3472,43 @@ function rollBaseSiege() {
   }
   render();
 }
+function resolveTheft(loserName) {
+  const loser = STATE.players.find(p => p.charname === loserName);
+  if (!loser) return alert("Target not found in player roster.");
+  
+  const lockboxLv = loser.quarters?.lockbox || 0;
+  let blockChance = 0;
+  if (lockboxLv === 1) blockChance = 25;
+  if (lockboxLv === 2) blockChance = 60;
+  if (lockboxLv === 3) blockChance = 100;
+
+  const roll = Math.floor(Math.random() * 100) + 1; 
+  
+  if (roll <= blockChance) {
+    alert(`THEFT BLOCKED! (Lockbox Lv.${lockboxLv} gave ${blockChance}% protection. Rolled ${roll})`);
+    if(STATE.sessionActive) addLog({type:'battle', who:'System', what:`Theft against ${loserName} was BLOCKED by their Lockbox!`});
+  } else {
+    alert(`THEFT SUCCESSFUL! (Lockbox Lv.${lockboxLv} gave ${blockChance}% protection. Rolled ${roll})`);
+    if(STATE.sessionActive) addLog({type:'battle', who:'System', what:`Theft against ${loserName} SUCCEEDED. Winner takes an item!`});
+  }
+}
+
+function logBattleResult() {
+  const c1 = parseInt(STATE.battleCoins1) || 0;
+  const c2 = parseInt(STATE.battleCoins2) || 0;
+  if (c1 === c2) return alert("It's a tie! No clear winner.");
+  
+  const winner = c1 > c2 ? STATE.battleP1 : STATE.battleP2;
+  const loser = c1 > c2 ? STATE.battleP2 : STATE.battleP1;
+  const diff = Math.abs(c1 - c2);
+  
+  if(STATE.sessionActive) {
+    addLog({type:'battle', who:'Box Battle', what:`${winner} DEFEATED ${loser} by a gap of ${diff.toLocaleString()} coins!`});
+    alert("Battle officially logged!");
+  } else {
+    alert("Start a live session to log this battle.");
+  }
+}
 
 function handleImageUpload(input, targetProperty) {
   const file = input.files[0];
