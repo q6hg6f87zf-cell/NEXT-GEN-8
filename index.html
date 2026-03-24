@@ -2061,7 +2061,7 @@ function renderNPCs() {
 
   let content = '';
 
-    if (STATE.npcMainTab === 'hq') {
+  if (STATE.npcMainTab === 'hq') {
     let residentHTML = '<div class="empty-state">No residents currently at HQ.</div>';
 
     if (STATE.baseResidents.length > 0) {
@@ -2212,8 +2212,6 @@ function renderNPCs() {
 
   return nav + content;
 }
-
-
 
 function renderVillains() {
   const custVil = STATE.customVillains || [];
