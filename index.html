@@ -1946,6 +1946,40 @@ function renderPlayerModal() {
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px"> 
     ${[{type:'curse',label:'⚗ Cursed'},{type:'wanted',label:'🎯 Wanted'},{type:'exile',label:'🚫 Exiled'},{type:'servant',label:'⛓ Servant'}].map(c=>`<button class="btn btn-sm" style="background:rgba(30,20,50,0.8)" onclick="addConsequence(${p.id},'${c.type}','${c.label}')">+ ${c.label}</button>`).join('')} 
   </div> 
+    // --- ARC PROGRESSION TRACKER ---
+  const adv = p.advancement || { raids: 0, battles: 0 };
+  const currentTraitIdx = TRAIT_TIERS.findIndex(t => t.level === p.traitLevel);
+  const canEvolve = adv.raids >= 3 && adv.battles >= 3 && currentTraitIdx < TRAIT_TIERS.length - 1;
+
+  let progHTML = `
+    <div class="section-title" style="color:var(--gold)">🔮 Arc Progression</div>
+    <div class="card" style="background:rgba(255,213,79,0.05); border-color:var(--gold)30">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+        <div style="font-size:0.65rem; color:var(--dim)">Current Tier: <b style="color:#fff">${p.traitLevel}</b></div>
+        ${canEvolve ? `<button class="btn btn-sm btn-green" onclick="evolveTrait(${p.id})">✨ EVOLVE TRAIT</button>` : `<div style="font-size:0.55rem; color:var(--dimmer)">Evolution: 3 Raids / 3 Battles</div>`}
+      </div>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+        <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; text-align:center">
+          <div style="font-size:0.55rem; color:var(--purple-light); text-transform:uppercase">Raids Completed</div>
+          <div style="font-size:1.1rem; font-weight:bold; color:#fff; margin:4px 0">${adv.raids}</div>
+          <div style="display:flex; gap:4px; justify-content:center">
+            <button class="btn btn-sm" onclick="adjAdvancement(${p.id}, 'raids', -1)">-</button>
+            <button class="btn btn-sm" onclick="adjAdvancement(${p.id}, 'raids', 1)">+</button>
+          </div>
+        </div>
+        <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; text-align:center">
+          <div style="font-size:0.55rem; color:var(--red); text-transform:uppercase">Box Battles Won</div>
+          <div style="font-size:1.1rem; font-weight:bold; color:#fff; margin:4px 0">${adv.battles}</div>
+          <div style="display:flex; gap:4px; justify-content:center">
+            <button class="btn btn-sm" onclick="adjAdvancement(${p.id}, 'battles', -1)">-</button>
+            <button class="btn btn-sm" onclick="adjAdvancement(${p.id}, 'battles', 1)">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
   ${(p.consequences||[]).map((c,i)=>`<div style="display:flex;justify-content:space-between;padding:5px 8px;background:rgba(10,8,25,0.8);border-radius:5px;margin-bottom:5px;font-size:0.72rem;font-family:Arial,sans-serif"><span>${c.label}</span><button onclick="rmConsequence(${p.id},${i})" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:0.68rem">✕ Lift</button></div>`).join('')} 
   
   <div class="section-title" style="margin-top:12px">🐾 Companion Slot</div>
