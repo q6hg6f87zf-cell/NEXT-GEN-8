@@ -3578,7 +3578,7 @@ function logBattleResult() {
   } else {
     alert("Start a live session to log this battle.");
   }
-}
+
 
 function handleImageUpload(input, targetProperty) {
   const file = input.files[0];
@@ -4064,15 +4064,14 @@ function evolveTrait(id) {
       // Reset counters after evolution
       p.advancement = { raids: 0, battles: 0 };
       addLog({type:'gift', who:p.charname, what: "ASCENDED! Trait evolved to " + nextTrait.level});
-      saveAll(); render();
+            saveAll(); render();
     }
   }
-} // 
-} // 
-
+} 
 
 // ═══════════════════════════════════════════════════
 // INITIALIZATION
+
 // ═══════════════════════════════════════════════════
 render();
 
