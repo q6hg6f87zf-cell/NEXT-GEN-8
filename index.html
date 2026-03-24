@@ -3377,6 +3377,47 @@ function startRaid() {
   saveAll();
   render();
 }
+function rollBaseSiege() {
+  const activeVillains = VILLAIN_LORE.filter(v => (STATE.villainsLive || []).includes(v.id));
+  if (activeVillains.length === 0) { alert("No active Villains to lead a siege!"); return; }
+  
+  const attacker = activeVillains[Math.floor(Math.random() * activeVillains.length)];
+  
+  // Calculate Base Defense
+  let def = 10; // Baseline DC
+  def += (STATE.baseRooms.barracks * 2);
+  def += STATE.baseResidents.filter(r => r.role === 'guard').length;
+  
+  // Loyalty Penalty: If anyone is a "Flight Risk", defense drops
+  const traitors = STATE.baseResidents.filter(r => r.loyalty <= 3).length;
+  def -= traitors;
+
+  const roll = d20();
+  const total = roll + (STATE.baseRooms.watchtower * 2); // Watchtower gives a bonus to the defense roll
+  
+  let result = "";
+  let color = "var(--green)";
+  let icon = "🛡️";
+
+  if (total >= attacker.phases.length + 15) {
+    result = `PERFECT DEFENSE: ${attacker.name}'s forces were crushed before reaching the gates. No damage sustained.`;
+  } else if (total >= 12) {
+    result = `REPELLED: The squad held the line! ${attacker.name} retreated, but the HQ is shaken. No rooms breached.`;
+  } else {
+    color = "var(--red)";
+    icon = "🔥";
+    const breachedRoomKeys = Object.keys(BASE_ROOMS);
+    const breached = breachedRoomKeys[Math.floor(Math.random() * breachedRoomKeys.length)];
+    result = `BREACHED! ${attacker.name} broke through the perimeter. The ${BASE_ROOMS[breached].name} has been damaged and is offline until repaired!`;
+  }
+
+  STATE.lastSiegeResult = { attacker: attacker.name, icon, result, color, roll: total };
+  
+  if (STATE.sessionActive) {
+    addLog({ type: 'battle', who: 'HQ Defense', what: `Siege by ${attacker.name}! Result: ${result}`, result: roll });
+  }
+  render();
+}
 
 function handleImageUpload(input, targetProperty) {
   const file = input.files[0];
