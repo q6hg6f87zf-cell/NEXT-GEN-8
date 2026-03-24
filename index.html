@@ -3122,19 +3122,39 @@ function renderCompendium() {
   `;
 
   let content = '';
-  if (STATE.compendiumTab === 'races') {
+    if (STATE.compendiumTab === 'races') {
     content = Object.entries(RACES).map(([id, r]) => `
       <div class="card-glow" style="border-left:4px solid var(--gold)">
         <div style="font-size:1.2rem; font-weight:bold; color:#fff; margin-bottom:4px">${r.icon} ${r.name}</div>
         <div style="font-size:0.65rem; color:var(--gold); font-style:italic; margin-bottom:10px">"${r.tagline}"</div>
+        
         <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; margin-bottom:8px">
-          <div style="font-size:0.6rem; color:var(--dim); text-transform:uppercase">Racial Ability</div>
-          <div style="font-size:0.75rem; color:var(--purple-light); font-weight:bold">${r.ability}</div>
+          <div style="font-size:0.6rem; color:var(--dim); text-transform:uppercase; margin-bottom:2px">Biological Quirk</div>
+          <div style="font-size:0.7rem; color:var(--purple-light)">${r.biological_quirk}</div>
         </div>
-        <div style="font-size:0.7rem; color:var(--text); line-height:1.5; margin-bottom:8px">${r.lore}</div>
-        <div style="font-size:0.6rem; color:var(--dim); border-top:1px solid rgba(255,255,255,0.1); padding-top:6px"><b>AI Renders:</b> ${r.aiPrompts}</div>
+
+        <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; margin-bottom:8px">
+          <div style="font-size:0.6rem; color:var(--dim); text-transform:uppercase; margin-bottom:2px">Social Standing</div>
+          <div style="font-size:0.7rem; color:#fff">${r.social_standing}</div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px">
+          <div style="background:rgba(239,83,80,0.1); padding:8px; border-radius:6px; border:1px solid rgba(239,83,80,0.3)">
+            <div style="font-size:0.6rem; color:var(--red); text-transform:uppercase; margin-bottom:2px">Taboo</div>
+            <div style="font-size:0.65rem; color:#fff">${r.taboo}</div>
+          </div>
+          <div style="background:rgba(79,195,247,0.1); padding:8px; border-radius:6px; border:1px solid rgba(79,195,247,0.3)">
+            <div style="font-size:0.6rem; color:var(--blue); text-transform:uppercase; margin-bottom:2px">Fear</div>
+            <div style="font-size:0.65rem; color:#fff">${r.fear}</div>
+          </div>
+        </div>
+
+        <div style="font-size:0.7rem; color:var(--text); line-height:1.5; margin-bottom:8px; font-style:italic"><b>Philosophy:</b> ${r.philosophy}</div>
+        <div style="font-size:0.7rem; color:var(--text); line-height:1.5; margin-bottom:8px"><b>Lore:</b> ${r.lore}</div>
+        <div style="font-size:0.6rem; color:var(--dim); border-top:1px solid rgba(255,255,255,0.1); padding-top:6px"><b>Appearance:</b> ${r.character_description}</div>
       </div>
     `).join('');
+
   } else if (STATE.compendiumTab === 'classes') {
     content = renderClasses();
   } else if (STATE.compendiumTab === 'arsenal') {
