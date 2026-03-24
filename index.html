@@ -3235,7 +3235,7 @@ function renderCompendium() {
     content = renderClasses();
   } else if (STATE.compendiumTab === 'arsenal') {
     content = renderArsenal();
-     } else if (STATE.compendiumTab === 'companions') {
+       } else if (STATE.compendiumTab === 'companions') {
     const compNames = Object.keys(COMPANION_TYPES);
     if (!STATE.compendiumCompTab) STATE.compendiumCompTab = compNames[0];
     if (!STATE.compendiumCompSec) STATE.compendiumCompSec = 'overview';
@@ -3273,6 +3273,40 @@ function renderCompendium() {
           <div style="font-size:0.7rem; color:#fff">${c.passive_trait}</div>
         </div>
       `;
+    } else if (STATE.compendiumCompSec === 'care') {
+      secContent = `
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px">
+          <div style="background:rgba(255,152,0,0.1); padding:8px; border-radius:6px; border:1px solid rgba(255,152,0,0.3)">
+            <div style="font-size:0.6rem; color:var(--gold); text-transform:uppercase; margin-bottom:2px">Maintenance</div>
+            <div style="font-size:0.65rem; color:#fff">${c.maintenance}</div>
+          </div>
+          <div style="background:rgba(138,90,220,0.1); padding:8px; border-radius:6px; border:1px solid rgba(138,90,220,0.3)">
+            <div style="font-size:0.6rem; color:var(--purple-light); text-transform:uppercase; margin-bottom:2px">Quirk</div>
+            <div style="font-size:0.65rem; color:#fff">${c.behavior_quirk}</div>
+          </div>
+        </div>
+      `;
+    } else if (STATE.compendiumCompSec === 'lore') {
+      secContent = `
+        <div style="font-size:0.7rem; color:var(--text); line-height:1.5; margin-bottom:8px"><b>Lore:</b> ${c.lore}</div>
+        <div style="font-size:0.65rem; color:var(--dim); margin-bottom:8px; background:rgba(0,0,0,0.3); padding:8px; border-radius:6px"><b>Looks:</b> ${c.physical_description}</div>
+        <div style="font-size:0.65rem; color:var(--dim); background:rgba(0,0,0,0.3); padding:8px; border-radius:6px"><b>Senses:</b> ${c.sensory_profile}</div>
+      `;
+    }
+
+    content = `<div class="info-bar">Companions cost 1,000 Coins ($13.00 PayPal). If they reach 0 HP, they flee to HQ and you lose their buff until you pay the Infirmary to heal them.</div>` + compNav + `
+      <div class="card-glow" style="border-left:4px solid var(--purple-light)">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+          <div style="font-size:1.4rem; font-weight:bold; color:#fff">${c.icon} ${c.name}</div>
+          <div style="font-size:0.7rem; color:var(--green); font-weight:bold">Max HP: ${c.hp}</div>
+        </div>
+        ${subNav}
+        <div class="fade-in" style="min-height:160px">
+          ${secContent}
+        </div>
+      </div>
+    `;
+
     } else if (STATE.compendiumCompSec === 'care') {
       secContent = `
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px">
