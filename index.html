@@ -3561,7 +3561,7 @@ function resolveTheft(loserName) {
     alert(`THEFT SUCCESSFUL! (Lockbox Lv.${lockboxLv} gave ${blockChance}% protection. Rolled ${roll})`);
     if(STATE.sessionActive) addLog({type:'battle', who:'System', what:`Theft against ${loserName} SUCCEEDED. Winner takes an item!`});
   }
-}
+}//
 
 function logBattleResult() {
   const c1 = parseInt(STATE.battleCoins1) || 0;
@@ -3578,7 +3578,7 @@ function logBattleResult() {
   } else {
     alert("Start a live session to log this battle.");
   }
-}
+}//
 
 
 
