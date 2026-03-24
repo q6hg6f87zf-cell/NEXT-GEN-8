@@ -3902,6 +3902,31 @@ function adjEmpire(villainId, type, delta) {
   }
   saveAll(); render();
 }
+function adjAdvancement(id, prop, delta) {
+  const p = STATE.players.find(x => x.id === id);
+  if (!p) return;
+  if (!p.advancement) p.advancement = { raids: 0, battles: 0 };
+  
+  p.advancement[prop] = Math.max(0, p.advancement[prop] + delta);
+  saveAll(); render();
+}
+
+function evolveTrait(id) {
+  const p = STATE.players.find(x => x.id === id);
+  if (!p) return;
+  
+  const currentIdx = TRAIT_TIERS.findIndex(t => t.level === p.traitLevel);
+  if (currentIdx < TRAIT_TIERS.length - 1) {
+    const nextTrait = TRAIT_TIERS[currentIdx + 1];
+    if (confirm("Evolve " + p.charname + " to " + nextTrait.level + "?")) {
+      p.traitLevel = nextTrait.level;
+      // Reset counters after evolution
+      p.advancement = { raids: 0, battles: 0 };
+      addLog({type:'gift', who:p.charname, what: "ASCENDED! Trait evolved to " + nextTrait.level});
+      saveAll(); render();
+    }
+  }
+}
 
 
 // ═══════════════════════════════════════════════════
