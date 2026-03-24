@@ -2702,9 +2702,39 @@ function renderMapLocation() {
 
 function renderRaids() {
   const locs = Object.entries(RAID_LOCATIONS);
+  const siege = STATE.lastSiegeResult;
+
+  // Calculate current Defense for display
+  let currentDef = 10 + (STATE.baseRooms.barracks * 2) + STATE.baseResidents.filter(r => r.role === 'guard').length;
+  const traitors = STATE.baseResidents.filter(r => r.loyalty <= 3).length;
+  currentDef -= traitors;
+
   return `
-    <div class="card-glow">
-      <div class="section-title">Active Raid Launcher</div>
+    <div class="card-glow" style="border-color:var(--red); background:rgba(40,10,10,0.4)">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+        <div class="section-title" style="margin-bottom:0; color:var(--red)">🏰 HQ SIEGE CONTROL</div>
+        <div style="font-size:0.6rem; color:#fff; background:var(--red); padding:2px 8px; border-radius:10px">DEFENSE: ${currentDef}</div>
+      </div>
+      <div class="info-bar" style="background:rgba(239,83,80,0.1); border-color:rgba(239,83,80,0.3)">
+        Roll to see if an active Villain attempts to breach the Moon Squad HQ. 
+        ${traitors > 0 ? `<b style="color:var(--red)"><br>⚠️ WARNING: ${traitors} residents are Flight Risks! Defense weakened.</b>` : ''}
+      </div>
+      
+      ${siege ? `
+        <div class="fade-in" style="background:rgba(0,0,0,0.4); padding:10px; border-radius:8px; border-left:4px solid ${siege.color}; margin-bottom:12px">
+          <div style="display:flex; justify-content:space-between; font-weight:bold; color:#fff; font-size:0.8rem">
+            <span>${siege.icon} Attacker: ${siege.attacker}</span>
+            <span style="color:${siege.color}">Roll: ${siege.roll}</span>
+          </div>
+          <div style="font-size:0.7rem; color:${siege.color}; margin-top:5px; line-height:1.4">${siege.result}</div>
+        </div>
+      ` : ''}
+      
+      <button class="btn btn-red btn-full" onclick="rollBaseSiege()">🎲 TRIGGER BASE SIEGE</button>
+    </div>
+
+    <div class="card-glow" style="margin-top:15px">
+      <div class="section-title">Squad Raid Launcher</div>
       <div style="margin-bottom:12px">
         <label class="label">Target Location</label>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px">
@@ -2728,12 +2758,12 @@ function renderRaids() {
       <button class="btn btn-purple btn-full" onclick="startRaid()">⚔️ DEPLOY RAID SQUAD</button>
     </div>
     
-    <div class="card" style="border-color:var(--red)40">
+    <div class="card" style="border-color:var(--red)40; margin-top:15px">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
         <div class="section-title" style="margin-bottom:0; color:var(--red)">🎯 WANTED BOARD</div>
         <button class="btn btn-sm btn-purple" onclick="rollBounty()">🎲 Pull Bounty</button>
       </div>
-      ${!STATE.activeBounty ? '<div class="empty-state">No active bounties. Roll to check the board.</div>' : `
+      ${!STATE.activeBounty ? '<div class="empty-state">No active bounties.</div>' : `
         <div style="background:rgba(20,10,10,0.8); border-left:4px solid var(--red); padding:10px; border-radius:6px">
           <div style="display:flex; justify-content:space-between">
             <div style="font-weight:bold; font-size:1.1rem; color:#fff">${STATE.activeBounty.name}</div>
@@ -2744,22 +2774,12 @@ function renderRaids() {
             <div style="color:var(--gold)"><b>Reward:</b> ${STATE.activeBounty.reward}</div>
             <div style="color:var(--blue)"><b>DC:</b> ${STATE.activeBounty.dc}</div>
           </div>
-          <div style="font-size:0.7rem; color:#ccc; margin-top:6px"><b>Last Seen:</b> ${STATE.activeBounty.location}</div>
         </div>
       `}
     </div>
-
-    <div class="card">
-      <div class="section-title">Raid History</div>
-      ${STATE.raidHistory.length === 0 ? '<div style="font-size:0.65rem; color:var(--dim)">No raids recorded this arc.</div>' : 
-        STATE.raidHistory.slice(0,5).map(r => `
-          <div style="font-size:0.7rem; padding:6px 0; border-bottom:1px solid var(--border)">
-            <span style="color:var(--gold)">${r.location}</span> — ${r.tier} (${r.status})
-          </div>
-        `).join('')}
-    </div>
   `;
 }
+
 
 
 function renderArsenal() {
