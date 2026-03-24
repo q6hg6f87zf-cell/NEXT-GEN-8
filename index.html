@@ -2061,59 +2061,78 @@ function renderNPCs() {
 
   let content = '';
 
-  if (STATE.npcMainTab === 'hq') {
+    if (STATE.npcMainTab === 'hq') {
+    let residentHTML = '<div class="empty-state">No residents currently at HQ.</div>';
+
+    if (STATE.baseResidents.length > 0) {
+      residentHTML = STATE.baseResidents.map((r, i) => {
+        const roleData = RESIDENT_ROLES[r.role] || {icon:'👤', label:'Unknown', color:'#bbb', bonus:''};
+        const loyalty = r.loyalty !== undefined ? r.loyalty : 5;
+        const loyaltyColor = loyalty >= 8 ? 'var(--green)' : loyalty <= 3 ? 'var(--red)' : 'var(--gold)';
+        const loyaltyText = loyalty >= 8 ? 'Devoted' : loyalty <= 3 ? 'Flight Risk' : 'Neutral';
+
+        return `
+          <div class="card" style="border-left: 4px solid ${roleData.color}; padding:12px; margin-bottom:10px; background:rgba(15,10,25,0.8)">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start">
+              <div style="display:flex; gap:10px; align-items:center">
+                <div style="font-size:1.8rem; filter:drop-shadow(0 0 5px ${roleData.color}80)">${roleData.icon}</div>
+                <div>
+                  <div style="font-weight:bold; font-size:1.1rem; color:#fff">${esc(r.name)}</div>
+                  <div style="font-size:0.65rem; color:${roleData.color}; text-transform:uppercase; letter-spacing:1px">${roleData.label}</div>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-red" style="padding:4px 8px" onclick="rmResident(${i})">✕</button>
+            </div>
+
+            <div style="font-size:0.68rem; color:var(--text); margin:10px 0; background:rgba(0,0,0,0.4); padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.05)">
+              <span style="color:var(--purple-light); font-weight:bold">✦ HQ Perk:</span> ${roleData.bonus}
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px">
+              <div style="font-size:0.7rem; color:var(--dim)">
+                Loyalty: <b style="color:${loyaltyColor}">${loyalty}/10</b> <span style="font-size:0.55rem; color:${loyaltyColor}">(${loyaltyText})</span>
+              </div>
+              <div style="display:flex; gap:4px">
+                <button class="btn btn-sm" style="padding:2px 10px; border-color:var(--red); color:var(--red); font-size:0.8rem" onclick="adjLoyalty(${i}, -1)">-</button>
+                <button class="btn btn-sm" style="padding:2px 10px; border-color:var(--green); color:var(--green); font-size:0.8rem" onclick="adjLoyalty(${i}, 1)">+</button>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:6px">
+              <input class="input" style="font-size:0.65rem; padding:6px; background:rgba(0,0,0,0.3); border-color:rgba(255,255,255,0.1)" placeholder="Current Status (e.g. Healthy, Wounded, Working)" value="${esc(r.status || '')}" onblur="updateResident(${i}, 'status', this.value)">
+              <textarea class="textarea" style="font-size:0.65rem; padding:6px; min-height:45px; background:rgba(0,0,0,0.3); border-color:rgba(255,255,255,0.1)" placeholder="GM Notes & Secrets... (e.g. Owes Valdris money)" onblur="updateResident(${i}, 'note', this.value)">${esc(r.note || '')}</textarea>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
     content = `
       <div class="card-glow">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
           <div class="section-title" style="margin-bottom:0">🏠 Moon Squad HQ</div>
           <button class="btn btn-sm btn-green" onclick="STATE.showAddResident=!STATE.showAddResident;render()">
-            ${STATE.showAddResident ? '✕ Cancel' : '+ Add NPC'}
+            ${STATE.showAddResident ? '✕ Cancel' : '+ Hire NPC'}
           </button>
         </div>
+        
         ${STATE.showAddResident ? `
-          <div class="roll-box" style="margin-bottom:12px">
+          <div class="roll-box" style="margin-bottom:12px; background:rgba(10,50,20,0.1); border-color:var(--green)">
             <label class="label">NPC Name</label>
             <input class="input" id="res-name" placeholder="Enter name..." style="margin-bottom:8px">
             <label class="label">Role</label>
             <select class="select" id="res-role" style="margin-bottom:10px">
               ${Object.entries(RESIDENT_ROLES).map(([k, r]) => `<option value="${k}">${r.icon} ${r.label}</option>`).join('')}
             </select>
-            <button class="btn btn-purple btn-full" onclick="addResident()">Confirm Resident</button>
+            <button class="btn btn-purple btn-full" style="background:var(--green); color:#000; border:none" onclick="addResident()">Hire Resident</button>
           </div>
         ` : ''}
-        ${STATE.baseResidents.length === 0 ? '<div class="empty-state">No residents currently at HQ.</div>' : 
-          STATE.baseResidents.map((r, i) => {
-            const roleData = RESIDENT_ROLES[r.role] || {icon:'👤', label:'Unknown', color:'#bbb', bonus:''};
-            const isShady = r.role === 'smuggler' || r.role === 'informant';
-            const loyalty = r.loyalty || 5;
-            const loyaltyColor = loyalty >= 7 ? 'var(--green)' : loyalty <= 3 ? 'var(--red)' : 'var(--gold)';
-            
-            return `
-            <div class="room-card card" style="display:block; margin-bottom:8px; padding:10px; border-color:${isShady ? loyaltyColor+'50' : 'var(--border)'}">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start">
-                <div>
-                  <div style="font-weight:bold; font-size:0.85rem; color:${roleData.color}">${roleData.icon} ${esc(r.name)}</div>
-                  <div style="font-size:0.65rem; color:var(--dim)">Role: ${roleData.label}</div>
-                  <div style="font-size:0.6rem; color:var(--purple-light); margin-top:2px">✦ ${roleData.bonus}</div>
-                </div>
-                <button class="btn btn-sm btn-red" onclick="rmResident(${i})">✕</button>
-              </div>
-              ${isShady ? `
-                <div style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.05)">
-                  <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.65rem">
-                    <span style="color:var(--dim)">Loyalty: <b style="color:${loyaltyColor}">${loyalty}/10</b></span>
-                    <div style="display:flex; gap:4px">
-                      <button class="btn btn-sm" style="padding:2px 6px; border-color:var(--red); color:var(--red)" onclick="adjLoyalty(${i}, -1)">-</button>
-                      <button class="btn btn-sm" style="padding:2px 6px; border-color:var(--green); color:var(--green)" onclick="adjLoyalty(${i}, 1)">+</button>
-                    </div>
-                  </div>
-                  ${loyalty <= 3 ? `<div style="font-size:0.55rem; color:var(--red); margin-top:4px; font-weight:bold">⚠️ WARNING: Flight or betrayal imminent. Pay them.</div>` : ''}
-                </div>
-              ` : ''}
-            </div>
-          `}).join('')}
+
+        ${residentHTML}
       </div>
     `;
+  }
+
   } else if (STATE.npcMainTab === 'world') {
     const npcNames = Object.keys(WORLD_NPCS);
     if (!STATE.worldNpcTab) STATE.worldNpcTab = npcNames[0];
@@ -3199,6 +3218,12 @@ function rmResident(index) {
   if (!confirm("Remove this resident?")) return;
   STATE.baseResidents.splice(index, 1);
   saveAll(); render();
+}
+function updateResident(index, prop, val) {
+  if (STATE.baseResidents[index]) {
+    STATE.baseResidents[index][prop] = val;
+    saveAll();
+  }
 }
 
 function adjLoyalty(index, delta) {
